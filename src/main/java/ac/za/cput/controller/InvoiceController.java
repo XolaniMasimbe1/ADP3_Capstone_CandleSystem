@@ -7,58 +7,44 @@ package ac.za.cput.controller;
  * Date: 26 June 2025
  **/
 import ac.za.cput.domain.Invoice;
-import ac.za.cput.repository.InoviceRepository;
+import ac.za.cput.service.InvoiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/CandleSystem/invoice")
 public class InvoiceController {
 
-    private final InoviceRepository inoviceRepository;
+    private final InvoiceService inovoiceservice;
 
     @Autowired
-    public InvoiceController(InoviceRepository inoviceRepository) {
-        this.inoviceRepository = inoviceRepository;
+    public InvoiceController(InvoiceService inovoiceservice) {
+        this.inovoiceservice = inovoiceservice;
     }
-
     @PostMapping("/create")
     public ResponseEntity<Invoice> create(@RequestBody Invoice invoice) {
-        Invoice created = inoviceRepository.save(invoice);
+        Invoice created = inovoiceservice.create(invoice);
         return ResponseEntity.ok(created);
     }
 
     @GetMapping("/read/{invoiceNumber}")
     public ResponseEntity<Invoice> read(@PathVariable String invoiceNumber) {
-        return inoviceRepository.findById(invoiceNumber)
+        return inovoiceservice.findById(invoiceNumber)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping("/update")
-    public ResponseEntity<Invoice> update(@RequestBody Invoice invoice) {
-        if (!inoviceRepository.existsById(invoice.getInvoiceNumber())) {
-            return ResponseEntity.notFound().build();
-        }
-        Invoice updated = inoviceRepository.save(invoice);
-        return ResponseEntity.ok(updated);
+    public Invoice update(@RequestBody Invoice invoice) {
+        return inovoiceservice.update(invoice);
+    }
+    @GetMapping("/find/{invoiceNumber}")
+    public ResponseEntity<Invoice> findByInvoiceNumber(@PathVariable String invoiceNumber) {
+        return inovoiceservice.findById(invoiceNumber)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/delete/{invoiceNumber}")
-    public ResponseEntity<Void> delete(@PathVariable String invoiceNumber) {
-        if (!inoviceRepository.existsById(invoiceNumber)) {
-            return ResponseEntity.notFound().build();
-        }
-        inoviceRepository.deleteById(invoiceNumber);
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/all")
-    public ResponseEntity<List<Invoice>> getAll() {
-        List<Invoice> all = (List<Invoice>) inoviceRepository.findAll();
-        return ResponseEntity.ok(all);
-    }
 }

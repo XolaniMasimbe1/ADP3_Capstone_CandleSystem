@@ -7,44 +7,36 @@ package ac.za.cput.controller;
  * Date: 26 June 2025
  **/
 import ac.za.cput.domain.RetailStore;
-import ac.za.cput.repository.RetailStoreRepository;
+import ac.za.cput.service.RetailStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/retailstore")
 public class RetailStoreController {
-
-    private final RetailStoreRepository retailStoreRepository;
-
+    private final RetailStoreService retailStoreService;
     @Autowired
-    public RetailStoreController(RetailStoreRepository retailStoreRepository) {
-        this.retailStoreRepository = retailStoreRepository;
+    public RetailStoreController(RetailStoreService retailStoreService) {
+        this.retailStoreService = retailStoreService;
     }
-
     @PostMapping("/create")
     public RetailStore create(@RequestBody RetailStore retailStore) {
-        return this.retailStoreRepository.save(retailStore);
+        return retailStoreService.create(retailStore);
     }
-
     @GetMapping("/read/{storeNumber}")
     public RetailStore read(@PathVariable String storeNumber) {
-        return this.retailStoreRepository.findById(storeNumber)
-                .orElse(null);
+        return retailStoreService.read(storeNumber);
     }
-
-    @PutMapping("/update")
+    @PostMapping("/update")
     public RetailStore update(@RequestBody RetailStore retailStore) {
-        return this.retailStoreRepository.save(retailStore);
+        return retailStoreService.update(retailStore);
     }
 
-    @DeleteMapping("/delete/{storeNumber}")
-    public void delete(@PathVariable String storeNumber) {
-        this.retailStoreRepository.deleteById(storeNumber);
-    }
 
-    @GetMapping("/all")
-    public Iterable<RetailStore> getAll() {
-        return this.retailStoreRepository.findAll();
+    @GetMapping("/find/{storeNumber}")
+    public Optional<RetailStore> findByStoreNumber(@PathVariable String storeNumber) {
+        return retailStoreService.findByStoreNumber(storeNumber);
     }
 }
