@@ -1,5 +1,11 @@
 package ac.za.cput.service;
-
+/*
+ * InvoiceService.java
+ * Service for Invoice
+ * Author: Xolani Masimbe
+ * Student Number: 222410817
+ * Date: 26 June 2025
+ **/
 import ac.za.cput.domain.Invoice;
 import ac.za.cput.repository.InoviceRepository;
 import org.springframework.beans.factory.annotation.Autowired;

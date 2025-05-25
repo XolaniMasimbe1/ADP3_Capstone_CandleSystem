@@ -1,5 +1,11 @@
 package ac.za.cput.service;
-
+/*
+ * InvoiceServiceTest.java
+ * Service for Invoice
+ * Author: Xolani Masimbe
+ * Student Number: 222410817
+ * Date: 26 June 2025
+ **/
 import ac.za.cput.domain.RetailStore;
 import ac.za.cput.factory.RetailStoreFactory;
 import org.junit.jupiter.api.*;

@@ -1,5 +1,11 @@
 package ac.za.cput.service;
-
+/*
+ * RetailStoreService.java
+ * Service for RetailStore
+ * Author: Xolani Masimbe
+ * Student Number: 222410817
+ * Date: 26 June 2025
+ **/
 import ac.za.cput.domain.RetailStore;
 import ac.za.cput.repository.RetailStoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
