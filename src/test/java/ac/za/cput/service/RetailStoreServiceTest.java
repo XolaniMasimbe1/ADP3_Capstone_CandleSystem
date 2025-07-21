@@ -71,4 +71,9 @@ class RetailStoreServiceTest {
         assertNotNull(foundRetailStore, "The retrieved RetailStore should not be null");
         System.out.println("Found Retail Store by Store Number: " + foundRetailStore);
     }
+    @Test
+    void getAll() {
+        assertFalse(retailStoreService.getAll().isEmpty(), "RetailStore list should not be empty");
+        System.out.println("All Retail Stores: " + retailStoreService.getAll());
+    }
 }

@@ -11,6 +11,7 @@ import ac.za.cput.repository.InoviceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -37,5 +38,10 @@ public class InvoiceService implements IInvoiceService {
     }
     public Optional<Invoice> findById(String invoiceNumber) {
         return this.repository.findById(invoiceNumber);
+    }
+
+    @Override
+    public List<Invoice> getAll() {
+        return this.repository.findAll();
     }
 }

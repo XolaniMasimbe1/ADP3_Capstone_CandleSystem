@@ -54,4 +54,9 @@ class InvoiceServiceTest {
         assertNotNull(foundInvoice);
         System.out.println("Found Invoice: " + foundInvoice);
     }
+    @Test
+    void getAll() {
+        assertFalse(invoiceService.getAll().isEmpty());
+        System.out.println("All Invoices: " + invoiceService.getAll());
+    }
 }

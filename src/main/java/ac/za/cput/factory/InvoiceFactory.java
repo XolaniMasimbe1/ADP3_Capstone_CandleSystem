@@ -6,9 +6,7 @@ package ac.za.cput.factory;
  * Student Number: 222410817
  * Date: 25 May 2025
  **/
-import ac.za.cput.domain.ContactDetails;
 import ac.za.cput.domain.Invoice;
-import ac.za.cput.domain.RetailStore;
 import ac.za.cput.util.Helper;
 
 public class InvoiceFactory {
