@@ -17,7 +17,7 @@ public class Employee {
     private int employeeNumber;
     private String firstName;
     private String lastName;
-    private String role;
+    private String role
 
 
     protected Employee() {
