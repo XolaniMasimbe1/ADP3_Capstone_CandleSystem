@@ -1,5 +1,11 @@
 package ac.za.cput.service;
-
+/*
+ * InvoiceServiceTest.java
+ * Service for Invoice
+ * Author: Xolani Masimbe
+ * Student Number: 222410817
+ * Date: 26 June 2025
+ **/
 import ac.za.cput.domain.Invoice;
 import ac.za.cput.factory.InvoiceFactory;
 import org.junit.jupiter.api.MethodOrderer;
@@ -47,5 +53,10 @@ class InvoiceServiceTest {
         Invoice foundInvoice = invoiceService.findById(invoice.getInvoiceNumber()).orElse(null);
         assertNotNull(foundInvoice);
         System.out.println("Found Invoice: " + foundInvoice);
+    }
+    @Test
+    void getAll() {
+        assertFalse(invoiceService.getAll().isEmpty());
+        System.out.println("All Invoices: " + invoiceService.getAll());
     }
 }

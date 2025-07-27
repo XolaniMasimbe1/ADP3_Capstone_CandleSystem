@@ -1,50 +1,45 @@
 package ac.za.cput.controller;
-/*
- * InvoiceCotroller.java
- * Test for Invoice
- * Author: Xolani Masimbe
- * Student Number: 222410817
- * Date: 26 June 2025
- **/
+
 import ac.za.cput.domain.Invoice;
 import ac.za.cput.service.InvoiceService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 
 @RestController
-@RequestMapping("/CandleSystem/invoice")
+@RequestMapping("/invoice")
 public class InvoiceController {
 
-    private final InvoiceService inovoiceservice;
+    private final InvoiceService service;
 
     @Autowired
-    public InvoiceController(InvoiceService inovoiceservice) {
-        this.inovoiceservice = inovoiceservice;
+    public InvoiceController(InvoiceService service) {
+        this.service = service;
     }
+
     @PostMapping("/create")
-    public ResponseEntity<Invoice> create(@RequestBody Invoice invoice) {
-        Invoice created = inovoiceservice.create(invoice);
-        return ResponseEntity.ok(created);
+    public Invoice create(@RequestBody Invoice invoice) {
+        return service.create(invoice);
     }
 
     @GetMapping("/read/{invoiceNumber}")
-    public ResponseEntity<Invoice> read(@PathVariable String invoiceNumber) {
-        return inovoiceservice.findById(invoiceNumber)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public Invoice read(@PathVariable String invoiceNumber) {
+        return service.read(invoiceNumber);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public Invoice update(@RequestBody Invoice invoice) {
-        return inovoiceservice.update(invoice);
-    }
-    @GetMapping("/find/{invoiceNumber}")
-    public ResponseEntity<Invoice> findByInvoiceNumber(@PathVariable String invoiceNumber) {
-        return inovoiceservice.findById(invoiceNumber)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return service.update(invoice);
     }
 
+    @GetMapping("/find/{invoiceNumber}")
+    public Invoice findById(@PathVariable String invoiceNumber) {
+        return service.read(invoiceNumber);
+    }
+
+    @GetMapping("/all")
+    public List<Invoice> getAll() {
+        return service.getAll();
+    }
 }

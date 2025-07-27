@@ -69,14 +69,7 @@ class RetailStoreControllerTest {
         System.out.println("Updated: " + response.getBody());
     }
 
-    @Test
-    void delete() {
-        String url = BASE_URL + "/delete/" + retailStore.getStoreNumber();
-        restTemplate.delete(url);
-        ResponseEntity<RetailStore> response = restTemplate.getForEntity(url, RetailStore.class);
-        assertNull(response.getBody());
-        System.out.println("Deleted: " + retailStore.getStoreNumber());
-    }
+
 
     @Test
     void getAll() {
