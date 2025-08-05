@@ -1,4 +1,7 @@
 package ac.za.cput.util;
+
+import java.util.Random;
+
 /*
  * Helper.java
  *  Helper
@@ -55,4 +58,28 @@ public class Helper {
             return false; // Not a valid number
         }
     }
+
+    public static String generateNumericId(int length) {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < length; i++) {
+            sb.append(random.nextInt(10));
+        }
+        return sb.toString();
+    }
+
+    public static boolean isValidPaymentMethod(String paymentMethod, String[] validMethods) {
+        if (isNullOrEmpty(paymentMethod)) return false;
+
+        for (String method : validMethods) {
+            if (method.equalsIgnoreCase(paymentMethod)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+
+
 }
