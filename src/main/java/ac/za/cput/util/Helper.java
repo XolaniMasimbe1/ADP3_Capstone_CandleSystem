@@ -67,4 +67,19 @@ public class Helper {
         }
         return sb.toString();
     }
+
+    public static boolean isValidPaymentMethod(String paymentMethod, String[] validMethods) {
+        if (isNullOrEmpty(paymentMethod)) return false;
+
+        for (String method : validMethods) {
+            if (method.equalsIgnoreCase(paymentMethod)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+
+
 }

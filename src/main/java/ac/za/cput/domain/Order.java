@@ -2,9 +2,10 @@ package ac.za.cput.domain;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import java.time.LocalDate;
-
+import java.util.List;
 
 
 @Entity
@@ -14,9 +15,17 @@ public class Order {
     private LocalDate orderDate;
     private String status;
     private String totalAmount;
+    private double taxAmount;
+    private String paymentMethod;
+
 
     @OneToOne
     private Invoice invoice;
+
+
+
+    @OneToMany(mappedBy = "order")
+    private List<OrderItem> items;
 
     protected Order() {
     }
@@ -26,7 +35,9 @@ public class Order {
         this.orderDate = builder.orderDate;
         this.status = builder.status;
         this.totalAmount = builder.totalAmount;
+        this.taxAmount = builder.taxAmount;
         this.invoice = builder.invoice;
+        this.paymentMethod = builder.paymentMethod;
     }
 
     public int getOrderNumber() {
@@ -49,6 +60,14 @@ public class Order {
         return invoice;
     }
 
+    public double getTaxAmount() {
+        return taxAmount;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
     @Override
     public String toString() {
         return "Order{" +
@@ -56,7 +75,9 @@ public class Order {
                 ", orderDate=" + orderDate +
                 ", status='" + status + '\'' +
                 ", totalAmount='" + totalAmount + '\'' +
+                ", taxAmount=" + taxAmount +
                 ", invoice=" + invoice +
+                ", items=" + items +
                 '}';
     }
 
@@ -66,6 +87,8 @@ public class Order {
         private String status;
         private String totalAmount;
         private Invoice invoice;
+        private double taxAmount;
+        private String paymentMethod;
 
         public Builder setOrderNumber(int orderNumber) {
             this.orderNumber = orderNumber;
@@ -91,6 +114,15 @@ public class Order {
             this.invoice = invoice;
             return this;
         }
+        public Builder setTaxAmount(double taxAmount) {
+            this.taxAmount = taxAmount;
+            return this;
+        }
+
+        public Builder setPaymentMethod(String paymentMethod) {
+            this.paymentMethod = paymentMethod;
+            return this;
+        }
 
         public Builder copy(Order order) {
             this.orderNumber = order.orderNumber;
@@ -98,6 +130,8 @@ public class Order {
             this.status = order.status;
             this.totalAmount = order.totalAmount;
             this.invoice = order.invoice;
+            this.taxAmount = order.taxAmount;
+            this.paymentMethod = order.paymentMethod;
             return this;
         }
 

@@ -2,7 +2,8 @@ package ac.za.cput.domain;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 
 @Entity
@@ -13,6 +14,16 @@ public class OrderItem {
     private double unitPrice;
     private double subtotal;
     private String category;
+
+
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
+
+    @ManyToOne
+    @JoinColumn(name = "candle_number")
+
+    private Candle candle;
 
     protected OrderItem() {
     }
