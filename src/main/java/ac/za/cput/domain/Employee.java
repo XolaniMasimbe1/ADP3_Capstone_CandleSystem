@@ -1,4 +1,5 @@
 package ac.za.cput.domain;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 
@@ -19,18 +20,18 @@ public class Employee {
     private String lastName;
     private String role;
 
-
+    @Embedded
+    private ContactDetails contactDetails;
     protected Employee() {
     }
-
 
     private Employee(Builder builder) {
         this.employeeNumber = builder.employeeNumber;
         this.firstName = builder.firstName;
         this.lastName = builder.lastName;
         this.role = builder.role;
+        this.contactDetails = builder.contactDetails;
     }
-
 
     public int getEmployeeNumber() {
         return employeeNumber;
@@ -48,6 +49,10 @@ public class Employee {
         return role;
     }
 
+    public ContactDetails getContactDetails() {
+        return contactDetails;
+    }
+
     @Override
     public String toString() {
         return "Employee{" +
@@ -55,15 +60,16 @@ public class Employee {
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", role='" + role + '\'' +
+                ", contactDetails=" + contactDetails +
                 '}';
     }
-
 
     public static class Builder {
         private int employeeNumber;
         private String firstName;
         private String lastName;
         private String role;
+        private ContactDetails contactDetails;
 
         public Builder setEmployeeNumber(int employeeNumber) {
             this.employeeNumber = employeeNumber;
@@ -85,11 +91,17 @@ public class Employee {
             return this;
         }
 
-        public Builder copy (Employee employee) {
+        public Builder setContactDetails(ContactDetails contactDetails) {
+            this.contactDetails = contactDetails;
+            return this;
+        }
+
+        public Builder copy(Employee employee) {
             this.employeeNumber = employee.employeeNumber;
             this.firstName = employee.firstName;
             this.lastName = employee.lastName;
             this.role = employee.role;
+            this.contactDetails = employee.contactDetails;
             return this;
         }
 
