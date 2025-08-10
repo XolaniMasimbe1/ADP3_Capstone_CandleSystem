@@ -15,11 +15,11 @@ public class DeliveryFactory {
         if (Helper.isNullOrEmpty(deliveryStatus) || Helper.isNullOrEmpty(driverName) || deliveryDate == null) {
             return null;
         }
-        int deliveryNumber = Helper.generateIntId(); // Assume Helper generates an int ID
+       // int deliveryNumber = Helper.generateIntId(); // Assume Helper generates an int ID
         String trackingNumber = "TRK-" + Helper.generateId();
 
         return new Delivery.Builder()
-                .setDeliveryNumber(deliveryNumber)
+              //  .setDeliveryNumber(deliveryNumber)
                 .setDeliveryDate(deliveryDate)
                 .setDeliveryStatus(deliveryStatus)
                 .setDriverName(driverName)

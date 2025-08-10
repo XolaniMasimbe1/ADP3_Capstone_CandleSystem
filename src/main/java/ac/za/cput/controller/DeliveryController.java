@@ -1,62 +1,45 @@
 package ac.za.cput.controller;
-/*
- * DeliveryController.java
- * Controller for Delivery
- * Author: Anda Matomela
- * Date: 26 May 2025
- **/
+
 import ac.za.cput.domain.Delivery;
+import ac.za.cput.service.DeliveryService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/CandleSystem/delivery")
+@RequestMapping("/delivery")
 public class DeliveryController {
 
-    private final DeliveryRepository deliveryRepository;
+    private final DeliveryService service;
 
     @Autowired
-    public DeliveryController(DeliveryRepository deliveryRepository) {
-        this.deliveryRepository = deliveryRepository;
+    public DeliveryController(DeliveryService service) {
+        this.service = service;
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Delivery> create(@RequestBody Delivery delivery) {
-        Delivery created = deliveryRepository.save(delivery);
-        return ResponseEntity.ok(created);
+    public Delivery create(@RequestBody Delivery delivery) {
+        return service.create(delivery);
     }
 
-    @GetMapping("/read/{deliveryId}")
-    public ResponseEntity<Delivery> read(@PathVariable String deliveryId) {
-        return deliveryRepository.findById(deliveryId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @GetMapping("/read/{deliveryNumber}")
+    public Delivery read(@PathVariable int deliveryNumber) {
+        return service.read(deliveryNumber);
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<Delivery> update(@RequestBody Delivery delivery) {
-        if (!deliveryRepository.existsById(delivery.getDeliveryId())) {
-            return ResponseEntity.notFound().build();
-        }
-        Delivery updated = deliveryRepository.save(delivery);
-        return ResponseEntity.ok(updated);
+    @PutMapping("/update")
+    public Delivery update(@RequestBody Delivery delivery) {
+        return service.update(delivery);
     }
 
-    @DeleteMapping("/delete/{deliveryId}")
-    public ResponseEntity<Void> delete(@PathVariable String deliveryId) {
-        if (!deliveryRepository.existsById(deliveryId)) {
-            return ResponseEntity.notFound().build();
-        }
-        deliveryRepository.deleteById(deliveryId);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/find/{deliveryNumber}")
+    public Delivery findById(@PathVariable int deliveryNumber) {
+        return service.read(deliveryNumber);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<Delivery>> getAll() {
-        List<Delivery> all = (List<Delivery>) deliveryRepository.findAll();
-        return ResponseEntity.ok(all);
+    public List<Delivery> getAll() {
+        return service.getAll();
     }
 }

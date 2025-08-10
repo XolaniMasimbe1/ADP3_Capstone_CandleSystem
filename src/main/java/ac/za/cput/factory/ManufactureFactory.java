@@ -14,10 +14,10 @@ public class ManufactureFactory {
         if (Helper.isNullOrEmpty(manufacturerName) || Helper.isNullOrEmpty(inventoryStock)) {
             return null;
         }
-        int manufacturerNumber = Helper.generateIntId();
+       // int manufacturerNumber = Helper.generateId();
 
         return new Manufacture.Builder()
-                .setManufacturerNumber(manufacturerNumber)
+               // .setManufacturerNumber(manufacturerNumber)
                 .setManufacturerName(manufacturerName)
                 .setInventoryStock(inventoryStock)
                 .build();
