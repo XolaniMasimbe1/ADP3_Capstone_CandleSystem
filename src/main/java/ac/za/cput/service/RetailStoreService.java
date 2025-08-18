@@ -8,6 +8,7 @@ package ac.za.cput.service;
  **/
 import ac.za.cput.domain.RetailStore;
 import ac.za.cput.repository.RetailStoreRepository;
+import ac.za.cput.service.Imp.IRetailStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,15 +17,15 @@ import java.util.Optional;
 
 @Service
 public class RetailStoreService implements IRetailStoreService {
-    private RetailStoreRepository repository;
+    private final RetailStoreRepository repository;
+
     @Autowired
     public RetailStoreService(RetailStoreRepository repository) {
         this.repository = repository;
     }
+
     @Override
-    public RetailStore create(RetailStore retailStore) {
-        return this.repository.save(retailStore);
-    }
+    public RetailStore create(RetailStore retailStore) { return this.repository.save(retailStore); }
 
     @Override
     public RetailStore read(String storeNumber) {
@@ -32,16 +33,13 @@ public class RetailStoreService implements IRetailStoreService {
     }
 
     @Override
-    public RetailStore update(RetailStore retailStore) {
-        return this.repository.save(retailStore);
-    }
-
-    public Optional<RetailStore> findByStoreNumber(String storeNumber) {
-        return this.repository.findByStoreNumber(storeNumber);
-    }
+    public RetailStore update(RetailStore retailStore) { return this.repository.save(retailStore); }
 
     @Override
-    public List<RetailStore> getAll() {
-        return this.repository.findAll();
+    public List<RetailStore> getAll() { return this.repository.findAll(); }
+
+    @Override
+    public Optional<RetailStore> findByStoreNumber(String storeNumber) {
+        return this.repository.findByStoreNumber(storeNumber);
     }
 }
