@@ -1,64 +1,81 @@
 package ac.za.cput.domain;
 
 import jakarta.persistence.*;
-/*
- * RetailStore.java
- * Pojo for RetailStore
- * Author: Xolani Masimbe
- * Student Number: 222410817
- * Date: 25 May 2025
- **/
+import java.util.Objects;
 
 @Entity
 public class RetailStore {
     @Id
     private String storeNumber;
     private String storeName;
-    private String contactPerson;
-
 
     @Embedded
     private ContactDetails contactDetails;
 
-    protected RetailStore(){
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "userId")
+    private User user;
 
-    }
-    public RetailStore(Builder builder) {
+    public RetailStore() {}
+
+    private RetailStore(Builder builder) {
         this.storeNumber = builder.storeNumber;
         this.storeName = builder.storeName;
-        this.contactPerson = builder.contactPerson;
         this.contactDetails = builder.contactDetails;
+        if (builder.user != null) {
+            setUser(builder.user);
+        }
     }
 
-    public String getStoreNumber() {
-        return storeNumber;
+    // Getters
+    public String getStoreNumber() { return storeNumber; }
+    public String getStoreName() { return storeName; }
+    public ContactDetails getContactDetails() { return contactDetails; }
+    public User getUser() { return user; }
+
+    // Setters
+    public void setStoreNumber(String storeNumber) { this.storeNumber = storeNumber; }
+    public void setStoreName(String storeName) { this.storeName = storeName; }
+    public void setContactDetails(ContactDetails contactDetails) { this.contactDetails = contactDetails; }
+
+    public void setUser(User user) {
+        if (this.user != null && !this.user.equals(user)) {
+            this.user.setRetailStore(null);
+        }
+        this.user = user;
+        if (user != null && user.getRetailStore() != this) {
+            user.setRetailStore(this);
+        }
     }
 
-    public String getContactPerson() {
-        return contactPerson;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RetailStore that = (RetailStore) o;
+        return Objects.equals(storeNumber, that.storeNumber);
     }
 
-    public ContactDetails getContactDetails() {
-        return contactDetails;
+    @Override
+    public int hashCode() {
+        return Objects.hash(storeNumber);
     }
 
-    public String getStoreName() {
-        return storeName;
-    }
     @Override
     public String toString() {
         return "RetailStore{" +
                 "storeNumber='" + storeNumber + '\'' +
                 ", storeName='" + storeName + '\'' +
-                ", contactPerson='" + contactPerson + '\'' +
                 ", contactDetails=" + contactDetails +
-                '}';
+                ", userId=" + (user != null ? user.getUserId() : null) +
+                '}'; // Simplified user reference
     }
+
     public static class Builder {
         private String storeNumber;
         private String storeName;
-        private String contactPerson;
         private ContactDetails contactDetails;
+        private User user;
 
         public Builder setStoreNumber(String storeNumber) {
             this.storeNumber = storeNumber;
@@ -70,22 +87,23 @@ public class RetailStore {
             return this;
         }
 
-        public Builder setContactPerson(String contactPerson) {
-            this.contactPerson = contactPerson;
-            return this;
-        }
-
         public Builder setContactDetails(ContactDetails contactDetails) {
             this.contactDetails = contactDetails;
             return this;
         }
-       public Builder copy(RetailStore retailStore){
+
+        public Builder setUser(User user) {
+            this.user = user;
+            return this;
+        }
+
+        public Builder copy(RetailStore retailStore) {
             this.storeNumber = retailStore.storeNumber;
             this.storeName = retailStore.storeName;
-            this.contactPerson = retailStore.contactPerson;
             this.contactDetails = retailStore.contactDetails;
+            this.user = retailStore.user;
             return this;
-       }
+        }
 
         public RetailStore build() {
             return new RetailStore(this);

@@ -2,16 +2,11 @@ package ac.za.cput.repository;
 
 import ac.za.cput.domain.RetailStore;
 import org.springframework.data.jpa.repository.JpaRepository;
-/*
- * RetailFactory.java
- * Factory for Retail
- * Author: Xolani Masimbe
- * Student Number: 222410817
- * Date: 25 May 2025
- **/
+import org.springframework.stereotype.Repository;
+
 import java.util.Optional;
 
+@Repository
 public interface RetailStoreRepository extends JpaRepository<RetailStore, String> {
     Optional<RetailStore> findByStoreNumber(String storeNumber);
-
 }

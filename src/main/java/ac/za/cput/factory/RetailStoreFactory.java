@@ -2,31 +2,31 @@ package ac.za.cput.factory;
 
 import ac.za.cput.domain.ContactDetails;
 import ac.za.cput.domain.RetailStore;
+import ac.za.cput.domain.User;
 import ac.za.cput.util.Helper;
-/*
- * RetailFactory.java
- * Factoru for Invoice
- * Author: Xolani Masimbe
- * Student Number: 222410817
- * Date: 25 May 2025
- **/
+
 public class RetailStoreFactory {
-    public static RetailStore createRetailStore( String storeName, String contactPerson,
-                                                String email, String phoneNumber, String postalCode
-                     , String street, String city, String province, String country) {
-        if (Helper.isNullOrEmpty(storeName) || Helper.isNullOrEmpty(contactPerson) ||
-                !Helper.isValidEmail(email) || !Helper.isValidPhoneNumber(phoneNumber) ||
-                Helper.isNullOrEmpty(postalCode) || Helper.isNullOrEmpty(street) ||
-                Helper.isNullOrEmpty(city) || Helper.isNullOrEmpty(province) || Helper.isNullOrEmpty(country)) {
-            return null; // Invalid input
+    public static RetailStore createRetailStore(String storeName, String email, String phoneNumber, String postalCode, String street, String city, String province, String country, User user) {
+        if (Helper.isNullOrEmpty(storeName)) {
+            System.err.println("Store name is null or empty");
+            return null;
         }
-        String storeId = Helper.generateId();
-        ContactDetails contactDetails = new ContactDetails(email, phoneNumber, postalCode, street, city, province, country);
+        if (!Helper.isValidEmail(email)) {
+            System.err.println("Invalid email: " + email);
+            return null;
+        }
+        if (!Helper.isValidPhoneNumber(phoneNumber)) {
+            System.err.println("Invalid phone: " + phoneNumber);
+            return null;
+        }
+        String storeNumber = Helper.generateId();
+        ContactDetails contactDetails = new ContactDetails(email, phoneNumber, postalCode, city, country, province, street);
         return new RetailStore.Builder()
-                .setStoreNumber(storeId)
+                .setStoreNumber(storeNumber)
                 .setStoreName(storeName)
-                .setContactPerson(contactPerson)
                 .setContactDetails(contactDetails)
+                .setUser(user)
                 .build();
     }
+
 }

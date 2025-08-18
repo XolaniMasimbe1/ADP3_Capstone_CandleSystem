@@ -1,16 +1,10 @@
 package ac.za.cput.domain;
 
 import jakarta.persistence.Embeddable;
-/*
- * ContactDetails.java
- *
- * Author: Xolani Masimbe
- * Student Number: 222410817
- * Date: 26 June 2025
- **/
+import java.util.Objects;
+
 @Embeddable
 public class ContactDetails {
-
     private String email;
     private String phoneNumber;
     private String postalCode;
@@ -19,16 +13,16 @@ public class ContactDetails {
     private String province;
     private String country;
 
-    public ContactDetails() {
-    }
-    public ContactDetails(String email, String phoneNumber, String postalCode, String street, String city, String province, String country) {
+    public ContactDetails() {}
+
+    public ContactDetails(String email, String phoneNumber, String postalCode, String city, String country, String province, String street) {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.postalCode = postalCode;
-        this.street = street;
         this.city = city;
-        this.province = province;
         this.country = country;
+        this.province = province;
+        this.street = street;
     }
 
     public String getEmail() {
@@ -47,20 +41,20 @@ public class ContactDetails {
         this.phoneNumber = phoneNumber;
     }
 
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
     public String getCity() {
         return city;
     }
 
     public void setCity(String city) {
         this.city = city;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
     }
 
     public String getProvince() {
@@ -83,5 +77,20 @@ public class ContactDetails {
         return postalCode;
     }
 
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
+    }
 
+    @Override
+    public String toString() {
+        return "ContactDetails{" +
+                "email='" + email + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", postalCode='" + postalCode + '\'' +
+                ", street='" + street + '\'' +
+                ", city='" + city + '\'' +
+                ", province='" + province + '\'' +
+                ", country='" + country + '\'' +
+                '}';
+    }
 }
