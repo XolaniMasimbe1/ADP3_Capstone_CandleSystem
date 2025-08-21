@@ -1,5 +1,6 @@
 package ac.za.cput.service;
 
+import ac.za.cput.domain.ContactDetails;
 import ac.za.cput.domain.Enum.UserRole;
 import ac.za.cput.domain.RetailStore;
 import ac.za.cput.domain.User;
@@ -54,6 +55,7 @@ class RetailStoreServiceTest {
     void update() {
         String storeNumber = "8a1c07ef-41f8-4ceb-a420-935e743d812c";
         RetailStore updatedStore = new RetailStore.Builder()
+                .setContactDetails(new ContactDetails())
                 .setStoreNumber(storeNumber)
                 .setStoreName("Updated Store")
                 .build();
