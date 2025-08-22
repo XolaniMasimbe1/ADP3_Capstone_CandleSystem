@@ -8,28 +8,31 @@ import ac.za.cput.factory.UserFactory;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.*;
-import static org.junit.jupiter.api.Assertions.*;
+import org.springframework.web.client.RestTemplate;
 
+import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RetailStoreControllerTest {
+	@Autowired
+	private static RestTemplate restTemplate;
 
-
-	private static final String STORE_URL = "/store";
-	private static final String USER_URL = "/user";
+	private static final String BASE_URL = "http://localhost:8080/CandleSystem";
+	private static final String STORE_URL = BASE_URL + "/store";
+	private static final String USER_URL = BASE_URL + "/user";
 
 	private static RetailStore retailStore;
 	private static User user;
 
-	@Autowired
-	private TestRestTemplate restTemplate;
+
+
 
 	@BeforeAll
 	static void setUp() {
-		user = UserFactory.createUser("er10", "rd8", UserRole.STORE);
+		restTemplate = new RestTemplate();
+		user = UserFactory.createUser("ejr10", "rkd8", UserRole.STORE);
 
 		retailStore = RetailStoreFactory.createRetailStore(
 				"PicknPay",
@@ -47,7 +50,7 @@ class RetailStoreControllerTest {
 	@Test
 	@Order(1)
 	void a_Create() {
-		// create user
+
 		restTemplate.postForEntity(USER_URL + "/create", user, User.class);
 
 		// create store
@@ -82,12 +85,16 @@ class RetailStoreControllerTest {
 				.build();
 
 		// FIX 3: Use exchange with HttpMethod.PUT for updates.
-		ResponseEntity<RetailStore> response = restTemplate.exchange(
+		restTemplate.exchange(
 				STORE_URL + "/update",
 				HttpMethod.PUT,
 				new HttpEntity<>(updatedStore),
-				RetailStore.class
+				Void.class // The return type can be Void if the controller returns nothing
 		);
+
+		// Verify the update by reading the resource again
+		String readUrl = STORE_URL + "/read/" + updatedStore.getStoreNumber();
+		ResponseEntity<RetailStore> response = restTemplate.getForEntity(readUrl, RetailStore.class);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertNotNull(response.getBody());
@@ -106,6 +113,4 @@ class RetailStoreControllerTest {
 		assertTrue(response.getBody().length > 0);
 		System.out.println("All stores retrieved: " + response.getBody().length);
 	}
-
-
 }
