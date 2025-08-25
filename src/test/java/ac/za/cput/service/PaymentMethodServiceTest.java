@@ -21,7 +21,7 @@ class PaymentMethodServiceTest {
     private PaymentMethodService paymentMethodService;
 
     private static PaymentMethod paymentMethod = PaymentMethodFactory.createPaymentMethod(
-           PaymentType.CASH, LocalDateTime.now());
+            PaymentType.CASH, LocalDateTime.now());
 
     @Test
     @Order(1)

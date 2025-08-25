@@ -40,7 +40,7 @@ class UserServiceTest {
     @Order(2)
     void update() {
         User updatedUser = new User.Builder().
-                 setPasswordHash("newPasswordHash")
+                setPasswordHash("newPasswordHash")
                 .setUsername("userUpdated")
                 .setRole(UserRole.ADMIN)
                 .setUserId(user.getUserId())

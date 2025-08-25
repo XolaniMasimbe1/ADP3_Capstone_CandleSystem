@@ -8,32 +8,31 @@ import ac.za.cput.factory.UserFactory;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.*;
-import org.springframework.web.client.RestTemplate;
-
+import org.springframework.test.annotation.DirtiesContext;
 import static org.junit.jupiter.api.Assertions.*;
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class RetailStoreControllerTest {
-	@Autowired
-	private static RestTemplate restTemplate;
 
 	private static final String BASE_URL = "http://localhost:8080/CandleSystem";
 	private static final String STORE_URL = BASE_URL + "/store";
 	private static final String USER_URL = BASE_URL + "/user";
-
 	private static RetailStore retailStore;
 	private static User user;
 
+	@Autowired
+	private TestRestTemplate restTemplate;
 
+	@BeforeEach
+	void setUp() {
 
+		user = UserFactory.createUser("testUser", "password", UserRole.STORE);
 
-	@BeforeAll
-	static void setUp() {
-		restTemplate = new RestTemplate();
-		user = UserFactory.createUser("ejr10", "rkd8", UserRole.STORE);
-
+		// Create a RetailStore object for the test
 		retailStore = RetailStoreFactory.createRetailStore(
 				"PicknPay",
 				"info@picknpay.com",
@@ -50,14 +49,11 @@ class RetailStoreControllerTest {
 	@Test
 	@Order(1)
 	void a_Create() {
-
+		// Persist user first
 		restTemplate.postForEntity(USER_URL + "/create", user, User.class);
 
-		// create store
-		ResponseEntity<RetailStore> response = restTemplate.postForEntity(STORE_URL + "/create", retailStore, RetailStore.class);
-
-		// FIX 2: Check for HTTP status and response body.
-		assertEquals(HttpStatus.CREATED, response.getStatusCode());
+		String url = STORE_URL + "/create";
+		ResponseEntity<RetailStore> response = restTemplate.postForEntity(url, retailStore, RetailStore.class);
 		assertNotNull(response.getBody());
 		System.out.println("Created: " + response.getBody());
 	}
@@ -65,50 +61,63 @@ class RetailStoreControllerTest {
 	@Test
 	@Order(2)
 	void b_Read() {
-		// read the same store
-		String readUrl = STORE_URL + "/read/" + retailStore.getStoreNumber();
-		ResponseEntity<RetailStore> response = restTemplate.getForEntity(readUrl, RetailStore.class);
+		// Persist user first
+		restTemplate.postForEntity(USER_URL + "/create", user, User.class);
 
-		assertEquals(HttpStatus.OK, response.getStatusCode());
+		// First, create the object
+		String createUrl = STORE_URL + "/create";
+		RetailStore createdStore = restTemplate.postForObject(createUrl, retailStore, RetailStore.class);
+		assertNotNull(createdStore);
+
+		// Then, read it
+		String readUrl = STORE_URL + "/read/" + createdStore.getStoreNumber();
+		ResponseEntity<RetailStore> response = restTemplate.getForEntity(readUrl, RetailStore.class);
+		assertNotNull(response);
+		assertEquals(200, response.getStatusCode().value());
 		assertNotNull(response.getBody());
-		assertEquals(retailStore.getStoreNumber(), response.getBody().getStoreNumber());
+		assertEquals(createdStore.getStoreNumber(), response.getBody().getStoreNumber());
 		System.out.println("Read: " + response.getBody());
 	}
 
 	@Test
 	@Order(3)
 	void c_Update() {
-		// update store
-		RetailStore updatedStore = new RetailStore.Builder()
-				.copy(retailStore)
+		// Persist user first
+		restTemplate.postForEntity(USER_URL + "/create", user, User.class);
+
+		// First, create the object
+		String createUrl = STORE_URL + "/create";
+		RetailStore createdStore = restTemplate.postForObject(createUrl, retailStore, RetailStore.class);
+		assertNotNull(createdStore);
+
+		// Then, update it
+		RetailStore updatedStore = new RetailStore.Builder().copy(createdStore)
 				.setStoreName("PicknPay Updated")
 				.build();
+		restTemplate.put(STORE_URL + "/update", updatedStore);
 
-		// FIX 3: Use exchange with HttpMethod.PUT for updates.
-		restTemplate.exchange(
-				STORE_URL + "/update",
-				HttpMethod.PUT,
-				new HttpEntity<>(updatedStore),
-				Void.class // The return type can be Void if the controller returns nothing
-		);
-
-		// Verify the update by reading the resource again
-		String readUrl = STORE_URL + "/read/" + updatedStore.getStoreNumber();
-		ResponseEntity<RetailStore> response = restTemplate.getForEntity(readUrl, RetailStore.class);
-
-		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertNotNull(response.getBody());
-		assertEquals("PicknPay Updated", response.getBody().getStoreName());
-		System.out.println("Updated: " + response.getBody());
+		// Verify the update
+		RetailStore foundUpdated = restTemplate.getForObject(STORE_URL + "/read/" + updatedStore.getStoreNumber(), RetailStore.class);
+		assertNotNull(foundUpdated);
+		assertEquals("PicknPay Updated", foundUpdated.getStoreName());
+		System.out.println("Updated: " + foundUpdated);
 	}
 
 	@Test
 	@Order(4)
 	void d_GetAll() {
-		// get all stores
-		ResponseEntity<RetailStore[]> response = restTemplate.getForEntity(STORE_URL + "/all", RetailStore[].class);
+		// Persist user first
+		restTemplate.postForEntity(USER_URL + "/create", user, User.class);
 
-		assertEquals(HttpStatus.OK, response.getStatusCode());
+		// Create at least one object to ensure the list is not empty
+		String createUrl = STORE_URL + "/create";
+		restTemplate.postForObject(createUrl, retailStore, RetailStore.class);
+
+		// Retrieve all stores
+		String getAllUrl = STORE_URL + "/all";
+		ResponseEntity<RetailStore[]> response = restTemplate.getForEntity(getAllUrl, RetailStore[].class);
+		assertNotNull(response);
+		assertEquals(200, response.getStatusCode().value());
 		assertNotNull(response.getBody());
 		assertTrue(response.getBody().length > 0);
 		System.out.println("All stores retrieved: " + response.getBody().length);

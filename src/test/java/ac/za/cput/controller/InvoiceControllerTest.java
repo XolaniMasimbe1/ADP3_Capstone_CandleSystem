@@ -9,7 +9,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,29 +37,29 @@ class InvoiceControllerTest {
 
     @Test
     void read() {
-    ResponseEntity<Invoice> response = restTemplate.getForEntity(
-            INVOICE_URL + "/read/" + invoice.getInvoiceNumber(), Invoice.class);
-    assertNotNull(response.getBody());
-      System.out.println("Read: " + response.getBody());
+        ResponseEntity<Invoice> response = restTemplate.getForEntity(
+                INVOICE_URL + "/read/" + invoice.getInvoiceNumber(), Invoice.class);
+        assertNotNull(response.getBody());
+        System.out.println("Read: " + response.getBody());
 
     }
 
     @Test
     void update() {
-    Invoice updated = new Invoice.Builder().copy(invoice).setTotalAmount(950.00).build();
-    restTemplate.postForEntity(INVOICE_URL + "/update", updated, Invoice.class);
-    ResponseEntity<Invoice> response = restTemplate.getForEntity(
-            INVOICE_URL + "/read/" + updated.getInvoiceNumber(), Invoice.class);
-    assertNotNull(response.getBody());
-      System.out.println("Updated: " + response.getBody());
+        Invoice updated = new Invoice.Builder().copy(invoice).setTotalAmount(950.00).build();
+        restTemplate.postForEntity(INVOICE_URL + "/update", updated, Invoice.class);
+        ResponseEntity<Invoice> response = restTemplate.getForEntity(
+                INVOICE_URL + "/read/" + updated.getInvoiceNumber(), Invoice.class);
+        assertNotNull(response.getBody());
+        System.out.println("Updated: " + response.getBody());
     }
 
 
     @Test
     void getAll() {
-    ResponseEntity<Invoice[]> response =
-            restTemplate.getForEntity(INVOICE_URL + "/all", Invoice[].class);
-    assertNotNull(response.getBody());
+        ResponseEntity<Invoice[]> response =
+                restTemplate.getForEntity(INVOICE_URL + "/all", Invoice[].class);
+        assertNotNull(response.getBody());
         System.out.println("Get All: " + response.getBody());
     }
 }

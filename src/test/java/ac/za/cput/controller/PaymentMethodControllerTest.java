@@ -2,7 +2,6 @@ package ac.za.cput.controller;
 
 import ac.za.cput.domain.Enum.PaymentType;
 import ac.za.cput.domain.PaymentMethod;
-import ac.za.cput.domain.User;
 import ac.za.cput.factory.PaymentMethodFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;

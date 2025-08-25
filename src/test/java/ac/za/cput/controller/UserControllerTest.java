@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.web.client.RestTemplate;
+
 
 import java.util.List;
 
@@ -51,13 +51,9 @@ class UserControllerTest {
     @Test
     @Order(2)
     void read() {
-        // Either option 1:
+
         String url = BASE_URL + "/read/{userId}";
         ResponseEntity<User> response = restTemplate.getForEntity(url, User.class, user.getUserId());
-
-        // Or option 2:
-        // String url = BASE_URL + "/read/" + user.getUserId();
-        // ResponseEntity<User> response = restTemplate.getForEntity(url, User.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -111,6 +107,4 @@ class UserControllerTest {
 
         System.out.println("All Users: " + response.getBody());
     }
-
-
 }

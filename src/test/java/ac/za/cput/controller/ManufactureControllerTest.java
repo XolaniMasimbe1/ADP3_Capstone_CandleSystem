@@ -1,7 +1,6 @@
 package ac.za.cput.controller;
 
 import ac.za.cput.domain.Manufacture;
-import ac.za.cput.domain.Product;
 import ac.za.cput.factory.ManufactureFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
@@ -25,7 +24,7 @@ class ManufactureControllerTest {
 
     @BeforeAll
     static void setUp() {
-         manufacture = ManufactureFactory.createManufacture("Whole Candles Inc.");
+        manufacture = ManufactureFactory.createManufacture("Whole Candles Inc.");
     }
     @Test
     void create() {

@@ -8,16 +8,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ProductFactoryTest {
 
-   private static Manufacture manufacture = ManufactureFactory.createManufacture("Scented Candles Inc.");
+    private static Manufacture manufacture = ManufactureFactory.createManufacture("Scented Candles Inc.");
 
-   private static Product product = ProductFactory.createProduct(
-           "Candle001",
-           700.00,
-           1999,
-           "Grape",
-           "Purple",
-           "Large",
-           manufacture);
+    private static Product product = ProductFactory.createProduct(
+            "Candle001",
+            700.00,
+            1999,
+            "Grape",
+            "Purple",
+            "Large",
+            manufacture);
 
     @Test
     void createProduct() {
