@@ -1,6 +1,7 @@
 package ac.za.cput.service;
 
 import ac.za.cput.domain.Delivery;
+import ac.za.cput.factory.DeliveryFactory;
 import ac.za.cput.repository.DeliveryRepository;
 import ac.za.cput.service.Imp.IDeliveryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,14 @@ public class DeliveryService implements IDeliveryService {
     }
 
     @Override
-    public Delivery create(Delivery delivery) { return this.repository.save(delivery); }
+    public Delivery create(Delivery delivery) {
+        // If deliveryNumber is not provided, use factory to create a new delivery
+        if (delivery.getDeliveryNumber() == null || delivery.getDeliveryNumber().isEmpty()) {
+            Delivery newDelivery = DeliveryFactory.createDelivery(delivery.getStatus());
+            return this.repository.save(newDelivery);
+        }
+        return this.repository.save(delivery);
+    }
 
     @Override
     public Delivery read(String deliveryNumber) { return this.repository.findById(deliveryNumber).orElse(null); }

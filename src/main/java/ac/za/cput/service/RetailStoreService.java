@@ -28,9 +28,7 @@ public class RetailStoreService implements IRetailStoreService {
     public RetailStore create(RetailStore retailStore) { return this.repository.save(retailStore); }
 
     @Override
-    public RetailStore read(String storeNumber) {
-        return this.repository.findById(storeNumber).orElse(null);
-    }
+    public RetailStore read(String storeNumber) { return this.repository.findById(storeNumber).orElse(null); }
 
     @Override
     public RetailStore update(RetailStore retailStore) { return this.repository.save(retailStore); }

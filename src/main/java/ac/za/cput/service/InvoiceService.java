@@ -1,7 +1,7 @@
-
 package ac.za.cput.service;
 
 import ac.za.cput.domain.Invoice;
+import ac.za.cput.factory.InvoiceFactory;
 import ac.za.cput.repository.InvoiceRepository;
 import ac.za.cput.service.Imp.IInvoiceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,14 @@ public class InvoiceService implements IInvoiceService {
     }
 
     @Override
-    public Invoice create(Invoice invoice) { return this.repository.save(invoice); }
+    public Invoice create(Invoice invoice) { 
+        // If invoiceNumber is not provided, use factory to create a new invoice
+        if (invoice.getInvoiceNumber() == null || invoice.getInvoiceNumber().isEmpty()) {
+            Invoice newInvoice = InvoiceFactory.createInvoice(invoice.getTotalAmount());
+            return this.repository.save(newInvoice);
+        }
+        return this.repository.save(invoice); 
+    }
 
     @Override
     public Invoice read(String invoiceNumber) { return this.repository.findById(invoiceNumber).orElse(null); }

@@ -81,16 +81,5 @@ public class ContactDetails {
         this.postalCode = postalCode;
     }
 
-    @Override
-    public String toString() {
-        return "ContactDetails{" +
-                "email='" + email + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                ", postalCode='" + postalCode + '\'' +
-                ", street='" + street + '\'' +
-                ", city='" + city + '\'' +
-                ", province='" + province + '\'' +
-                ", country='" + country + '\'' +
-                '}';
-    }
+
 }

@@ -4,6 +4,7 @@ import ac.za.cput.domain.Enum.UserRole;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 public class User {
@@ -15,10 +16,13 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
+
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private RetailStore retailStore;
 
+    // A public no-argument constructor is needed for Jackson deserialization
     public User() {}
 
     private User(Builder builder) {
@@ -26,10 +30,7 @@ public class User {
         this.username = builder.username;
         this.passwordHash = builder.passwordHash;
         this.role = builder.role;
-        if (builder.retailStore != null) {
-            this.retailStore = builder.retailStore;
-            this.retailStore.setUser(this);
-        }
+        this.retailStore = builder.retailStore;
     }
 
     // Getters
@@ -37,22 +38,30 @@ public class User {
     public String getUsername() { return username; }
     public String getPasswordHash() { return passwordHash; }
     public UserRole getRole() { return role; }
+
     public RetailStore getRetailStore() { return retailStore; }
 
-    // Setters
-    public void setUserId(String userId) { this.userId = userId; }
-    public void setUsername(String username) { this.username = username; }
-    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
-    public void setRole(UserRole role) { this.role = role; }
+    // Public setters are required by Jackson for deserialization
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
+
+
 
     public void setRetailStore(RetailStore retailStore) {
-        if (this.retailStore != null && !this.retailStore.equals(retailStore)) {
-            this.retailStore.setUser(null);
-        }
         this.retailStore = retailStore;
-        if (retailStore != null && retailStore.getUser() != this) {
-            retailStore.setUser(this);
-        }
     }
 
     @Override
@@ -73,8 +82,10 @@ public class User {
         return "User{" +
                 "userId='" + userId + '\'' +
                 ", username='" + username + '\'' +
+                ", passwordHash='" + passwordHash + '\'' +
                 ", role=" + role +
-                '}'; // Excluded retailStore to avoid circular reference
+
+                '}';
     }
 
     public static class Builder {
@@ -82,6 +93,7 @@ public class User {
         private String username;
         private String passwordHash;
         private UserRole role;
+
         private RetailStore retailStore;
 
         public Builder setUserId(String userId) {
@@ -104,6 +116,8 @@ public class User {
             return this;
         }
 
+
+
         public Builder setRetailStore(RetailStore retailStore) {
             this.retailStore = retailStore;
             return this;
@@ -114,6 +128,7 @@ public class User {
             this.username = user.username;
             this.passwordHash = user.passwordHash;
             this.role = user.role;
+
             this.retailStore = user.retailStore;
             return this;
         }

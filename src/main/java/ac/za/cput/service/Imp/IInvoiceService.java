@@ -1,11 +1,10 @@
-
 package ac.za.cput.service.Imp;
 /*
  * InvoiceService.java
  *
- * Author: Siphosenkosi Mbala
- * Student Number: 221140700
- * Date: 19 August 2025
+ * Author: Xolani Masimbe
+ * Student Number: 222410817
+ * Date: 26 June 2025
  **/
 import ac.za.cput.domain.Invoice;
 import ac.za.cput.service.IService;

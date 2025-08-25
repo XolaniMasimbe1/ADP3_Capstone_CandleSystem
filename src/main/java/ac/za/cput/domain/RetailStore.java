@@ -1,5 +1,6 @@
 package ac.za.cput.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.util.Objects;
 
@@ -16,15 +17,14 @@ public class RetailStore {
     @JoinColumn(name = "user_id", referencedColumnName = "userId")
     private User user;
 
+    // A public no-argument constructor is needed for Jackson deserialization
     public RetailStore() {}
 
     private RetailStore(Builder builder) {
         this.storeNumber = builder.storeNumber;
         this.storeName = builder.storeName;
         this.contactDetails = builder.contactDetails;
-        if (builder.user != null) {
-            setUser(builder.user);
-        }
+        this.user = builder.user;
     }
 
     // Getters
@@ -33,19 +33,21 @@ public class RetailStore {
     public ContactDetails getContactDetails() { return contactDetails; }
     public User getUser() { return user; }
 
-    // Setters
-    public void setStoreNumber(String storeNumber) { this.storeNumber = storeNumber; }
-    public void setStoreName(String storeName) { this.storeName = storeName; }
-    public void setContactDetails(ContactDetails contactDetails) { this.contactDetails = contactDetails; }
+    // Public setters are required by Jackson
+    public void setStoreNumber(String storeNumber) {
+        this.storeNumber = storeNumber;
+    }
+
+    public void setStoreName(String storeName) {
+        this.storeName = storeName;
+    }
+
+    public void setContactDetails(ContactDetails contactDetails) {
+        this.contactDetails = contactDetails;
+    }
 
     public void setUser(User user) {
-        if (this.user != null && !this.user.equals(user)) {
-            this.user.setRetailStore(null);
-        }
         this.user = user;
-        if (user != null && user.getRetailStore() != this) {
-            user.setRetailStore(this);
-        }
     }
 
     @Override
@@ -67,8 +69,7 @@ public class RetailStore {
                 "storeNumber='" + storeNumber + '\'' +
                 ", storeName='" + storeName + '\'' +
                 ", contactDetails=" + contactDetails +
-                ", userId=" + (user != null ? user.getUserId() : null) +
-                '}'; // Simplified user reference
+                '}';
     }
 
     public static class Builder {

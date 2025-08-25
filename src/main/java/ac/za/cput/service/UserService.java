@@ -13,6 +13,7 @@ import java.util.Optional;
 @Service
 public class UserService implements IUserService {
     private final UserRepository repository;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
     public UserService(UserRepository repository) {
@@ -30,32 +31,8 @@ public class UserService implements IUserService {
     public User read(String userId) { return this.repository.findById(userId).orElse(null); }
 
     @Override
-    @Transactional
     public User update(User user) {
-        Optional<User> existingUserOpt = repository.findById(user.getUserId());
-        if (existingUserOpt.isPresent()) {
-            User existingUser = existingUserOpt.get();
-
-            // Check if the username is not null before updating
-            if (user.getUsername() != null) {
-                existingUser.setUsername(user.getUsername());
-            }
-
-            if (user.getPasswordHash() != null) {
-                existingUser.setPasswordHash(user.getPasswordHash());
-            }
-
-            if (user.getRole() != null) {
-                existingUser.setRole(user.getRole());
-            }
-
-            if (user.getRetailStore() != null) {
-                existingUser.setRetailStore(user.getRetailStore());
-            }
-
-            return repository.save(existingUser);
-        }
-        return null;
+        return this.repository.save(user);
     }
 
     @Override
