@@ -1,11 +1,8 @@
 package ac.za.cput.service;
 
 import ac.za.cput.domain.ContactDetails;
-import ac.za.cput.domain.Enum.UserRole;
 import ac.za.cput.domain.RetailStore;
-import ac.za.cput.domain.User;
 import ac.za.cput.factory.RetailStoreFactory;
-import ac.za.cput.factory.UserFactory;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -22,23 +19,22 @@ class RetailStoreServiceTest {
     @Autowired
     private UserService userService;
 
-    private static User user = UserFactory.createUser("er101", "rd81", UserRole.STORE);
-
     private  static RetailStore retailStore = RetailStoreFactory.createRetailStore(
             "PicknPay",
+            "picknpay_user",
+            "password123",
             "info@picknpay.com",
             "0211234567",
-            "1234",
-            "Test Road",
+            "8001",
+            "123 Main Street",
             "Cape Town",
             "Western Cape",
-            "South Africa",user
+            "South Africa"
     );
 
 
     @Test
     void create() {
-        userService.create(user);
         RetailStore createdStore = retailStoreService.create(retailStore);
         assertNotNull(createdStore);
         System.out.println("Created: " + createdStore);
@@ -55,7 +51,6 @@ class RetailStoreServiceTest {
     void update() {
         String storeNumber = "8a1c07ef-41f8-4ceb-a420-935e743d812c";
         RetailStore updatedStore = new RetailStore.Builder()
-                .setContactDetails(new ContactDetails())
                 .setStoreNumber(storeNumber)
                 .setStoreName("Updated Store")
                 .build();

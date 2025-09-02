@@ -1,28 +1,23 @@
 package ac.za.cput.factory;
 
-import ac.za.cput.domain.Enum.UserRole;
 import ac.za.cput.domain.RetailStore;
-import ac.za.cput.domain.User;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class RetailStoreFactoryTest {
 
-    private static User user = UserFactory.createUser(
-            "KingsShop",
-            "Doe", UserRole.STORE);
-
-
     private  static RetailStore retailStore = RetailStoreFactory.createRetailStore(
             "PicknPay",
+            "picknpay_user",
+            "password123",
             "info@picknpay.com",
             "0211234567",
-            "1234",
-            "Test Road",
+            "8001",
+            "123 Main Street",
             "Cape Town",
             "Western Cape",
-            "South Africa",user
+            "South Africa"
     );
 
 

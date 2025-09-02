@@ -10,6 +10,7 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
@@ -25,6 +26,9 @@ class OrderControllerTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
+    
+    @LocalServerPort
+    private int port;
     @Autowired
     private OrderService orderService;
     @Autowired
@@ -48,38 +52,43 @@ class OrderControllerTest {
     private RetailStore retailStore;
     private Product product;
     private Manufacture manufacture;
-    private User user;
     private Delivery delivery;
     private Invoice invoice;
     private Payment payment;
     private PaymentMethod paymentMethod;
     private Set<OrderItem> orderItems;
 
-    private final String BASE_URL = "http://localhost:8080/CandleSystem";
-    private final String ORDER_URL = BASE_URL + "/order";
+    private String baseURL() {
+        return "http://localhost:" + port + "/CandleSystem";
+    }
+    
+    private String orderURL() {
+        return baseURL() + "/order";
+    }
 
     @BeforeAll
     void setUp() {
         try {
-            // 1. Create and persist user
-            user = userService.create(UserFactory.createUser("user", "password1234", UserRole.STORE));
-            assertNotNull(user, "User creation failed");
-            assertNotNull(user.getUserId(), "User ID is null");
-
-            // 2. Create retail store
+            // Generate unique data to avoid constraint violations
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            
+            // 1. Create retail store (RetailStore extends User, so no need for separate User)
             retailStore = retailStoreService.create(RetailStoreFactory.createRetailStore(
-                    "PicknPay",
-                    "picknpay@gmail.com",
+                    "PicknPay_" + timestamp,
+                    "picknpay_user_" + timestamp,
+                    "password123",
+                    "picknpay_" + timestamp + "@gmail.com",
                     "0833133820",
-                    "1685",
-                    "Mathaba Street",
-                    "Johannesburg",
-                    "Gauteng",
-                    "South Africa",
-                    user
+                    "8001",
+                    "123 Main Street",
+                    "Cape Town",
+                    "Western Cape",
+                    "South Africa"
             ));
             assertNotNull(retailStore, "RetailStore creation failed");
             assertNotNull(retailStore.getStoreNumber(), "RetailStore ID is null");
+            assertNotNull(retailStore.getUser(), "User is null");
+            assertNotNull(retailStore.getUser().getUserId(), "User ID is null");
 
             // 3. Create manufacture
             manufacture = manufactureService.create(ManufactureFactory.createManufacture("Candle Co."));
@@ -158,7 +167,7 @@ class OrderControllerTest {
         order.getOrderItems().forEach(item -> item.setOrder(order));
 
         ResponseEntity<Order> response = restTemplate.postForEntity(
-                ORDER_URL + "/create",
+                orderURL() + "/create",
                 order,
                 Order.class
         );
@@ -172,7 +181,7 @@ class OrderControllerTest {
     @org.junit.jupiter.api.Order(2)
     void b_read() {
         ResponseEntity<Order> response = restTemplate.getForEntity(
-                ORDER_URL + "/read/" + order.getOrderNumber(),
+                orderURL() + "/read/" + order.getOrderNumber(),
                 Order.class
         );
 
@@ -183,36 +192,57 @@ class OrderControllerTest {
     @Test
     @org.junit.jupiter.api.Order(3)
     void c_update() {
+        // Update the SAME order that was created in the first test
+        assertNotNull(order, "Order should not be null - run create test first");
+        
         Order updated = new Order.Builder()
                 .copy(order)
                 .setOrderStatus("Shipped")
                 .build();
 
         restTemplate.put(
-                ORDER_URL + "/update",
+                orderURL() + "/update",
                 updated
         );
 
+        // Update our reference to the updated order
+        order = updated;
+
         ResponseEntity<Order> response = restTemplate.getForEntity(
-                ORDER_URL + "/read/" + order.getOrderNumber(),
+                orderURL() + "/read/" + order.getOrderNumber(),
                 Order.class
         );
 
         assertNotNull(response.getBody(), "Response body is null");
+        assertEquals("Shipped", response.getBody().getOrderStatus(), "Order status should be updated to Shipped");
         System.out.println("Updated: " + response.getBody());
     }
 
     @Test
     @org.junit.jupiter.api.Order(4)
     void d_getAll() {
+        // Get all orders - should include the one we created and updated
+        assertNotNull(order, "Order should not be null - run create test first");
+        
         ResponseEntity<Order[]> response = restTemplate.getForEntity(
-                ORDER_URL + "/all",
+                orderURL() + "/all",
                 Order[].class
         );
 
         assertNotNull(response.getBody(), "Response body is null");
         assertTrue(response.getBody().length > 0, "No orders returned");
-        System.out.println("All Orders:");
+        
+        // Verify our created order is in the list
+        boolean foundOurOrder = false;
+        for (Order o : response.getBody()) {
+            if (o.getOrderNumber().equals(order.getOrderNumber())) {
+                foundOurOrder = true;
+                break;
+            }
+        }
+        assertTrue(foundOurOrder, "Our created order should be in the getAll results");
+        
+        System.out.println("All Orders (" + response.getBody().length + " total):");
         for (Order o : response.getBody()) {
             System.out.println(o);
         }
