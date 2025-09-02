@@ -1,12 +1,11 @@
 package ac.za.cput.domain;
 
 import ac.za.cput.domain.Enum.UserRole;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
+@Table(name = "users")
 public class User {
     @Id
     private String userId;
@@ -15,22 +14,20 @@ public class User {
     private String passwordHash;
     @Enumerated(EnumType.STRING)
     private UserRole role;
-
-
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private RetailStore retailStore;
+    
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "contact_id", referencedColumnName = "contactId")
+    private ContactDetails contactDetails;
 
     // A public no-argument constructor is needed for Jackson deserialization
     public User() {}
 
-    private User(Builder builder) {
+    protected User(Builder builder) {
         this.userId = builder.userId;
         this.username = builder.username;
         this.passwordHash = builder.passwordHash;
         this.role = builder.role;
-        this.retailStore = builder.retailStore;
+        this.contactDetails = builder.contactDetails;
     }
 
     // Getters
@@ -38,31 +35,14 @@ public class User {
     public String getUsername() { return username; }
     public String getPasswordHash() { return passwordHash; }
     public UserRole getRole() { return role; }
-
-    public RetailStore getRetailStore() { return retailStore; }
+    public ContactDetails getContactDetails() { return contactDetails; }
 
     // Public setters are required by Jackson for deserialization
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public void setRole(UserRole role) {
-        this.role = role;
-    }
-
-
-
-    public void setRetailStore(RetailStore retailStore) {
-        this.retailStore = retailStore;
-    }
+    public void setUserId(String userId) { this.userId = userId; }
+    public void setUsername(String username) { this.username = username; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public void setRole(UserRole role) { this.role = role; }
+    public void setContactDetails(ContactDetails contactDetails) { this.contactDetails = contactDetails; }
 
     @Override
     public boolean equals(Object o) {
@@ -82,9 +62,8 @@ public class User {
         return "User{" +
                 "userId='" + userId + '\'' +
                 ", username='" + username + '\'' +
-                ", passwordHash='" + passwordHash + '\'' +
                 ", role=" + role +
-
+                ", contactDetails=" + contactDetails +
                 '}';
     }
 
@@ -93,8 +72,7 @@ public class User {
         private String username;
         private String passwordHash;
         private UserRole role;
-
-        private RetailStore retailStore;
+        private ContactDetails contactDetails;
 
         public Builder setUserId(String userId) {
             this.userId = userId;
@@ -116,10 +94,8 @@ public class User {
             return this;
         }
 
-
-
-        public Builder setRetailStore(RetailStore retailStore) {
-            this.retailStore = retailStore;
+        public Builder setContactDetails(ContactDetails contactDetails) {
+            this.contactDetails = contactDetails;
             return this;
         }
 
@@ -128,8 +104,7 @@ public class User {
             this.username = user.username;
             this.passwordHash = user.passwordHash;
             this.role = user.role;
-
-            this.retailStore = user.retailStore;
+            this.contactDetails = user.contactDetails;
             return this;
         }
 

@@ -16,7 +16,7 @@ public class Order {
     private String orderStatus;
 
     @ManyToOne
-    @JoinColumn(name = "store_number", referencedColumnName = "storeNumber")
+    @JoinColumn(name = "retail_store_id")
     private RetailStore retailStore;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)

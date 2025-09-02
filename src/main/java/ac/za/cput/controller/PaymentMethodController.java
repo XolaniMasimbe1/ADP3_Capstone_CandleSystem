@@ -3,11 +3,14 @@ package ac.za.cput.controller;
 import ac.za.cput.domain.PaymentMethod;
 import ac.za.cput.service.PaymentMethodService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/payment-method")
+@Transactional
 public class PaymentMethodController {
     private final PaymentMethodService service;
 

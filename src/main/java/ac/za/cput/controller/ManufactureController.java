@@ -3,13 +3,16 @@ package ac.za.cput.controller;
 import ac.za.cput.domain.Manufacture;
 import ac.za.cput.service.ManufactureService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/manufacture")
+@Transactional
 public class ManufactureController {
 
     private final ManufactureService manufactureService;

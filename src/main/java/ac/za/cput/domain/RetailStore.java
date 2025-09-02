@@ -1,39 +1,46 @@
 package ac.za.cput.domain;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import ac.za.cput.domain.Enum.UserRole;
 import jakarta.persistence.*;
-import java.util.Objects;
+
 
 @Entity
+@Table(name = "retail_store")
 public class RetailStore {
     @Id
+    private String storeId;
+    
+    @Column(name = "store_number", unique = true)
     private String storeNumber;
+    
+    @Column(name = "store_name")
     private String storeName;
-
-    @Embedded
-    private ContactDetails contactDetails;
-
-    @OneToOne
+    
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "userId")
     private User user;
 
     // A public no-argument constructor is needed for Jackson deserialization
     public RetailStore() {}
 
-    private RetailStore(Builder builder) {
+    protected RetailStore(Builder builder) {
+        this.storeId = builder.storeId;
         this.storeNumber = builder.storeNumber;
         this.storeName = builder.storeName;
-        this.contactDetails = builder.contactDetails;
         this.user = builder.user;
     }
 
     // Getters
+    public String getStoreId() { return storeId; }
     public String getStoreNumber() { return storeNumber; }
     public String getStoreName() { return storeName; }
-    public ContactDetails getContactDetails() { return contactDetails; }
     public User getUser() { return user; }
 
     // Public setters are required by Jackson
+    public void setStoreId(String storeId) {
+        this.storeId = storeId;
+    }
+
     public void setStoreNumber(String storeNumber) {
         this.storeNumber = storeNumber;
     }
@@ -42,41 +49,30 @@ public class RetailStore {
         this.storeName = storeName;
     }
 
-    public void setContactDetails(ContactDetails contactDetails) {
-        this.contactDetails = contactDetails;
-    }
-
     public void setUser(User user) {
         this.user = user;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        RetailStore that = (RetailStore) o;
-        return Objects.equals(storeNumber, that.storeNumber);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(storeNumber);
-    }
-
-    @Override
     public String toString() {
         return "RetailStore{" +
-                "storeNumber='" + storeNumber + '\'' +
+                "storeId='" + storeId + '\'' +
+                ", storeNumber='" + storeNumber + '\'' +
                 ", storeName='" + storeName + '\'' +
-                ", contactDetails=" + contactDetails +
+                ", user=" + user +
                 '}';
     }
 
     public static class Builder {
+        private String storeId;
         private String storeNumber;
         private String storeName;
-        private ContactDetails contactDetails;
         private User user;
+
+        public Builder setStoreId(String storeId) {
+            this.storeId = storeId;
+            return this;
+        }
 
         public Builder setStoreNumber(String storeNumber) {
             this.storeNumber = storeNumber;
@@ -88,20 +84,15 @@ public class RetailStore {
             return this;
         }
 
-        public Builder setContactDetails(ContactDetails contactDetails) {
-            this.contactDetails = contactDetails;
-            return this;
-        }
-
         public Builder setUser(User user) {
             this.user = user;
             return this;
         }
 
         public Builder copy(RetailStore retailStore) {
+            this.storeId = retailStore.storeId;
             this.storeNumber = retailStore.storeNumber;
             this.storeName = retailStore.storeName;
-            this.contactDetails = retailStore.contactDetails;
             this.user = retailStore.user;
             return this;
         }

@@ -21,9 +21,7 @@ public class AdminService {
 
     @Transactional
     public Admin create(Admin admin) {
-        if (admin.getPasswordHash() != null && !admin.getPasswordHash().startsWith("$2a$")) {
-            admin.setPasswordHash(passwordEncoder.encode(admin.getPasswordHash()));
-        }
+        // Password hashing is handled in the factory, so we just save
         return repository.save(admin);
     }
 
@@ -33,14 +31,6 @@ public class AdminService {
 
     @Transactional
     public Admin update(Admin admin) {
-        Admin existingAdmin = repository.findById(admin.getAdminId()).orElse(null);
-        if (existingAdmin != null) {
-            if (admin.getPasswordHash() == null || admin.getPasswordHash().equals("")) {
-                admin.setPasswordHash(existingAdmin.getPasswordHash());
-            } else if (!admin.getPasswordHash().startsWith("$2a$")) {
-                admin.setPasswordHash(passwordEncoder.encode(admin.getPasswordHash()));
-            }
-        }
         return this.repository.save(admin);
     }
 
@@ -58,10 +48,14 @@ public class AdminService {
     }
 
     public Optional<Admin> findByUsername(String username) {
-        return this.repository.findByUsername(username);
+        return this.repository.findByUser_Username(username);
     }
 
     public Optional<Admin> findByEmail(String email) {
-        return this.repository.findByEmail(email);
+        return this.repository.findByUser_ContactDetails_Email(email);
+    }
+
+    public Admin readByUserId(String userId) {
+        return this.repository.findByUser_UserId(userId).orElse(null);
     }
 }

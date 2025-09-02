@@ -22,9 +22,6 @@ public class UserService implements IUserService {
 
     @Transactional
     public User create(User user) {
-        if (user.getRetailStore() != null) {
-            user.getRetailStore().setUser(user);
-        }
         return repository.save(user);
     }
     @Override

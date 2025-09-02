@@ -3,11 +3,14 @@ package ac.za.cput.controller;
 import ac.za.cput.domain.Delivery;
 import ac.za.cput.service.DeliveryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/delivery")
+@Transactional
 public class DeliveryController {
     private final DeliveryService service;
 
