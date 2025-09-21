@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.stereotype.Service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,6 +19,7 @@ class ProductServiceTest {
     @Autowired
     private ProductService productService;
     private static Manufacture manufacture = ManufactureFactory.createManufacture("Suited Candles Inc.");
+    private static byte[] testImageData = "test-image-data-for-service".getBytes();
 
     private static Product product = ProductFactory.createProduct(
             "Candle",
@@ -28,6 +28,7 @@ class ProductServiceTest {
             "Grape",
             "Yellow",
             "Large",
+            testImageData,
             manufacture);
     @Test
     void create() {
@@ -45,9 +46,12 @@ class ProductServiceTest {
 
     @Test
     void update() {
+        byte[] newImageData = "updated-image-data".getBytes();
         Product updatedProduct = new Product.Builder()
+                .copy(product)
                 .setScent("Lavender")
                 .setSize("Medium")
+                .setImageData(newImageData)
                 .build();
         assertNotNull(productService.update(updatedProduct));
         System.out.println("Updated: " + updatedProduct);

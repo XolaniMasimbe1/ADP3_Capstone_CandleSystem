@@ -10,6 +10,8 @@ class ProductFactoryTest {
 
     private static Manufacture manufacture = ManufactureFactory.createManufacture("Scented Candles Inc.");
 
+    private static byte[] testImageData = "test-image-data".getBytes();
+    
     private static Product product = ProductFactory.createProduct(
             "Candle001",
             700.00,
@@ -17,6 +19,7 @@ class ProductFactoryTest {
             "Grape",
             "Purple",
             "Large",
+            testImageData,
             manufacture);
 
     @Test
