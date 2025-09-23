@@ -15,6 +15,10 @@ public class Product {
     private String color;
     private String size;
 
+    @Lob
+    @Column(columnDefinition = "LONGBLOB")
+    private byte[] imageData;
+
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "manufacturer_number", referencedColumnName = "manufacturerNumber")
     private Manufacture manufacturer;
@@ -29,6 +33,7 @@ public class Product {
         this.scent = builder.scent;
         this.color = builder.color;
         this.size = builder.size;
+        this.imageData = builder.imageData;
         this.manufacturer = builder.manufacturer;
     }
 
@@ -41,6 +46,9 @@ public class Product {
     public String getColor() { return color; }
     public String getSize() { return size; }
     public Manufacture getManufacturer() { return manufacturer; }
+    
+    // Internal method for image handling (used by controller)
+    public byte[] getImageData() { return imageData; }
 
     @Override
     public boolean equals(Object o) {
@@ -65,6 +73,7 @@ public class Product {
                 ", scent='" + scent + '\'' +
                 ", color='" + color + '\'' +
                 ", size='" + size + '\'' +
+                ", imageData=" + (imageData != null ? "[" + imageData.length + " bytes]" : "null") +
                 ", manufacturer=" + manufacturer +
                 '}';
     }
@@ -77,6 +86,7 @@ public class Product {
         private String scent;
         private String color;
         private String size;
+        private byte[] imageData;
         private Manufacture manufacturer;
 
         public Builder setProductNumber(String productNumber) {
@@ -114,6 +124,11 @@ public class Product {
             return this;
         }
 
+        public Builder setImageData(byte[] imageData) {
+            this.imageData = imageData;
+            return this;
+        }
+
         public Builder setManufacturer(Manufacture manufacturer) {
             this.manufacturer = manufacturer;
             return this;
@@ -127,6 +142,7 @@ public class Product {
             this.scent = product.scent;
             this.color = product.color;
             this.size = product.size;
+            this.imageData = product.imageData;
             this.manufacturer = product.manufacturer;
             return this;
         }

@@ -5,7 +5,7 @@ import ac.za.cput.domain.Product;
 import ac.za.cput.util.Helper;
 
 public class ProductFactory {
-    public static Product createProduct(String name, double price, int stockQuantity, String scent, String color, String size, Manufacture manufacturer) {
+    public static Product createProduct(String name, double price, int stockQuantity, String scent, String color, String size, byte[] imageData, Manufacture manufacturer) {
         if (Helper.isNullOrEmpty(name) || price < 0 || stockQuantity < 0 || manufacturer == null) {
             return null;
         }
@@ -19,6 +19,7 @@ public class ProductFactory {
                 .setScent(scent)
                 .setColor(color)
                 .setSize(size)
+                .setImageData(imageData)
                 .setManufacturer(manufacturer)
                 .build();
     }

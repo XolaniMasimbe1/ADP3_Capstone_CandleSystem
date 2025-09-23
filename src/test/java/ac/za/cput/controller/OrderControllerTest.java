@@ -2,7 +2,6 @@ package ac.za.cput.controller;
 
 import ac.za.cput.domain.*;
 import ac.za.cput.domain.Enum.PaymentType;
-import ac.za.cput.domain.Enum.UserRole;
 import ac.za.cput.domain.Order;
 import ac.za.cput.factory.*;
 import ac.za.cput.service.*;
@@ -96,6 +95,7 @@ class OrderControllerTest {
             assertNotNull(manufacture.getManufacturerNumber(), "Manufacture ID is null");
 
             // 4. Create product
+            byte[] productImageData = "rose-candle-image-data".getBytes();
             product = productService.create(ProductFactory.createProduct(
                     "Rose Candle",
                     10.00,
@@ -103,6 +103,7 @@ class OrderControllerTest {
                     "Rose",
                     "Pink",
                     "Medium",
+                    productImageData,
                     manufacture
             ));
             assertNotNull(product, "Product creation failed");
@@ -246,5 +247,24 @@ class OrderControllerTest {
         for (Order o : response.getBody()) {
             System.out.println(o);
         }
+    }
+
+    @Test
+    @org.junit.jupiter.api.Order(5)
+    void e_testProductWithImage() {
+        // Test that products in orders have image data
+        assertNotNull(product, "Product should not be null");
+        
+        // Test getting product image
+        ResponseEntity<byte[]> imageResponse = restTemplate.getForEntity(
+                baseURL() + "/product/image/" + product.getProductNumber(),
+                byte[].class
+        );
+        
+        assertNotNull(imageResponse.getBody(), "Image should be retrievable");
+        assertTrue(imageResponse.getBody().length > 0, "Image should have content");
+        
+        System.out.println("Product image retrieved successfully, size: " + imageResponse.getBody().length + " bytes");
+        System.out.println("Product with image: " + product.getName() + " - Image available via API");
     }
 }
