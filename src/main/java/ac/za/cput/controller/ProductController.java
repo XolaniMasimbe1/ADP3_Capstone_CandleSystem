@@ -77,32 +77,18 @@ public class ProductController {
                 return ResponseEntity.notFound().build();
             }
 
-            // Create upload directory if it doesn't exist
-            String uploadDir = "uploads/images/";
-            java.nio.file.Path uploadPath = java.nio.file.Paths.get(uploadDir);
-            if (!java.nio.file.Files.exists(uploadPath)) {
-                java.nio.file.Files.createDirectories(uploadPath);
-            }
+            // Store the actual image bytes in the database
+            byte[] imageBytes = file.getBytes();
 
-            // Generate unique filename
-            String originalFilename = file.getOriginalFilename();
-            String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
-            String uniqueFilename = productNumber + "_" + System.currentTimeMillis() + fileExtension;
-            
-            // Save file to disk
-            java.nio.file.Path filePath = uploadPath.resolve(uniqueFilename);
-            java.nio.file.Files.write(filePath, file.getBytes());
-
-            // Update product with image path (not binary data)
-            String imagePath = uploadDir + uniqueFilename;
+            // Update product with actual image data
             product = new Product.Builder()
                     .copy(product)
-                    .setImageData(imagePath.getBytes()) // Store path as bytes for now
+                    .setImageData(imageBytes) // Store actual image bytes directly in DB
                     .build();
 
             service.update(product);
-            
-            return ResponseEntity.ok("Image uploaded successfully. File path: " + imagePath);
+
+            return ResponseEntity.ok("Image uploaded successfully to database. Image size: " + imageBytes.length + " bytes");
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading image: " + e.getMessage());
         }
@@ -116,25 +102,21 @@ public class ProductController {
                 return ResponseEntity.notFound().build();
             }
 
-            // Get image path from stored data
-            String imagePath = new String(product.getImageData());
-            java.nio.file.Path filePath = java.nio.file.Paths.get(imagePath);
-            
-            if (!java.nio.file.Files.exists(filePath)) {
-                return ResponseEntity.notFound().build();
-            }
+            // Get image bytes directly from database
+            byte[] imageBytes = product.getImageData();
 
-            // Read file from disk
-            byte[] imageBytes = java.nio.file.Files.readAllBytes(filePath);
-            
+            // Determine content type based on image data (you might want to store this separately)
+            String contentType = determineContentType(imageBytes);
+
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.IMAGE_JPEG);
+            headers.setContentType(MediaType.parseMediaType(contentType));
             headers.setContentLength(imageBytes.length);
+            headers.setCacheControl("max-age=3600"); // Cache for 1 hour
 
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(imageBytes);
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -147,25 +129,38 @@ public class ProductController {
                 return ResponseEntity.notFound().build();
             }
 
-            // Delete file from disk if it exists
-            if (product.getImageData() != null) {
-                String imagePath = new String(product.getImageData());
-                java.nio.file.Path filePath = java.nio.file.Paths.get(imagePath);
-                if (java.nio.file.Files.exists(filePath)) {
-                    java.nio.file.Files.delete(filePath);
-                }
-            }
-
-            // Remove image path from product
+            // Remove image data from product in database
             product = new Product.Builder()
                     .copy(product)
                     .setImageData(null)
                     .build();
 
             service.update(product);
-            return ResponseEntity.ok("Image deleted successfully");
-        } catch (IOException e) {
+            return ResponseEntity.ok("Image deleted successfully from database");
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting image: " + e.getMessage());
         }
+    }
+
+    // Helper method to determine content type from image bytes
+    private String determineContentType(byte[] imageBytes) {
+        if (imageBytes.length < 4) return "application/octet-stream";
+
+        // Check for PNG
+        if (imageBytes[0] == (byte) 0x89 && imageBytes[1] == (byte) 0x50 &&
+                imageBytes[2] == (byte) 0x4E && imageBytes[3] == (byte) 0x47) {
+            return "image/png";
+        }
+        // Check for JPEG
+        else if (imageBytes[0] == (byte) 0xFF && imageBytes[1] == (byte) 0xD8) {
+            return "image/jpeg";
+        }
+        // Check for GIF
+        else if (imageBytes[0] == (byte) 0x47 && imageBytes[1] == (byte) 0x49 &&
+                imageBytes[2] == (byte) 0x46) {
+            return "image/gif";
+        }
+
+        return "application/octet-stream";
     }
 }

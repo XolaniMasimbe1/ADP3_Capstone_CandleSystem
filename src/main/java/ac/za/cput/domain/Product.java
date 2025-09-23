@@ -16,6 +16,7 @@ public class Product {
     private String size;
 
     @Lob
+    @Column(columnDefinition = "LONGBLOB")
     private byte[] imageData;
 
     @ManyToOne(cascade = CascadeType.ALL)
