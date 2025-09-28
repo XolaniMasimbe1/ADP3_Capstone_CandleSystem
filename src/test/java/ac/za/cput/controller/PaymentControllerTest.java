@@ -1,6 +1,7 @@
 package ac.za.cput.controller;
 
 import ac.za.cput.domain.Enum.PaymentType;
+import ac.za.cput.domain.Enum.BankName;
 import ac.za.cput.domain.Payment;
 import ac.za.cput.domain.PaymentMethod;
 import ac.za.cput.factory.PaymentFactory;
@@ -30,13 +31,26 @@ class PaymentControllerTest {
 
     private static Payment payment;
     private static PaymentMethod paymentMethod;
+    private static Payment cardPayment;
+    private static PaymentMethod cardPaymentMethod;
 
     @BeforeAll
     void setUp() {
 
         paymentMethod = PaymentMethodFactory.createPaymentMethod(PaymentType.CASH, LocalDateTime.now());
-
         payment = PaymentFactory.createPayment(100.0, paymentMethod);
+
+        // Create card payment method and payment
+        cardPaymentMethod = PaymentMethodFactory.createPaymentMethod(PaymentType.CREDIT_CARD, LocalDateTime.now());
+        cardPayment = PaymentFactory.createCardPayment(
+                150.0, 
+                cardPaymentMethod, 
+                "1234567890123456", 
+                "John Doe", 
+                "12/25", 
+                "123", 
+                BankName.ABSA
+        );
     }
 
     @Test
@@ -110,5 +124,69 @@ class PaymentControllerTest {
         for (Payment p : response.getBody()) {
             System.out.println(p);
         }
+    }
+
+    @Test
+    @Order(5)
+    void e_createCardPayment() {
+        // Create payment method for card payment
+        ResponseEntity<PaymentMethod> paymentMethodResponse = restTemplate.postForEntity(
+                PAYMENTMETHOD_URL + "/create", 
+                cardPaymentMethod, 
+                PaymentMethod.class
+        );
+        assertEquals(HttpStatus.OK, paymentMethodResponse.getStatusCode());
+        assertNotNull(paymentMethodResponse.getBody());
+        cardPaymentMethod = paymentMethodResponse.getBody();
+        System.out.println("Created Card PaymentMethod: " + cardPaymentMethod);
+
+        // Update card payment with the created payment method
+        cardPayment = new Payment.Builder()
+                .copy(cardPayment)
+                .setPaymentMethod(cardPaymentMethod)
+                .build();
+
+        // Create card payment
+        ResponseEntity<Payment> paymentResponse = restTemplate.postForEntity(
+                PAYMENT_URL + "/create", 
+                cardPayment, 
+                Payment.class
+        );
+        assertEquals(HttpStatus.OK, paymentResponse.getStatusCode());
+        assertNotNull(paymentResponse.getBody());
+        cardPayment = paymentResponse.getBody();
+        
+        // Verify card payment details
+        assertNotNull(cardPayment.getCardNumber());
+        assertNotNull(cardPayment.getNameOnCard());
+        assertNotNull(cardPayment.getExpiryDate());
+        assertNotNull(cardPayment.getCvv());
+        assertNotNull(cardPayment.getBank());
+        assertEquals("1234567890123456", cardPayment.getCardNumber());
+        assertEquals("John Doe", cardPayment.getNameOnCard());
+        assertEquals("12/25", cardPayment.getExpiryDate());
+        assertEquals("123", cardPayment.getCvv());
+        assertEquals(BankName.ABSA, cardPayment.getBank());
+        
+        System.out.println("Created Card Payment: " + cardPayment);
+    }
+
+    @Test
+    @Order(6)
+    void f_readCardPayment() {
+        assertNotNull(cardPayment.getPaymentNumber());
+
+        String url = PAYMENT_URL + "/read/" + cardPayment.getPaymentNumber();
+        ResponseEntity<Payment> response = restTemplate.getForEntity(url, Payment.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(cardPayment.getPaymentNumber(), response.getBody().getPaymentNumber());
+        assertEquals("1234567890123456", response.getBody().getCardNumber());
+        assertEquals("John Doe", response.getBody().getNameOnCard());
+        assertEquals("12/25", response.getBody().getExpiryDate());
+        assertEquals("123", response.getBody().getCvv());
+        assertEquals(BankName.ABSA, response.getBody().getBank());
+        System.out.println("Read Card Payment: " + response.getBody());
     }
 }

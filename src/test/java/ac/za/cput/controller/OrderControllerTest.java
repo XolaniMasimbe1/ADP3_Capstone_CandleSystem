@@ -2,6 +2,8 @@ package ac.za.cput.controller;
 
 import ac.za.cput.domain.*;
 import ac.za.cput.domain.Enum.PaymentType;
+import ac.za.cput.domain.Enum.Province;
+import ac.za.cput.domain.Enum.BankName;
 import ac.za.cput.domain.Order;
 import ac.za.cput.factory.*;
 import ac.za.cput.service.*;
@@ -36,8 +38,6 @@ class OrderControllerTest {
     private ProductService productService;
     @Autowired
     private ManufactureService manufactureService;
-    @Autowired
-    private UserService userService;
     @Autowired
     private DeliveryService deliveryService;
     @Autowired
@@ -74,20 +74,27 @@ class OrderControllerTest {
             // 1. Create retail store (RetailStore extends User, so no need for separate User)
             retailStore = retailStoreService.create(RetailStoreFactory.createRetailStore(
                     "PicknPay_" + timestamp,
-                    "picknpay_user_" + timestamp,
-                    "password123",
                     "picknpay_" + timestamp + "@gmail.com",
-                    "0833133820",
-                    "8001",
-                    "123 Main Street",
+                    "password123",
+                    "123",
+                    "Main Street",
+                    "CBD",
                     "Cape Town",
-                    "Western Cape",
-                    "South Africa"
+                    Province.WESTERN_CAPE,
+                    "8001",
+                    "South Africa",
+                    "John",
+                    "Doe",
+                    "john@picknpay.com",
+                    "+27123456789",
+                    "Jane",
+                    "Smith",
+                    "jane@picknpay.com",
+                    "+27987654321"
             ));
             assertNotNull(retailStore, "RetailStore creation failed");
             assertNotNull(retailStore.getStoreNumber(), "RetailStore ID is null");
-            assertNotNull(retailStore.getUser(), "User is null");
-            assertNotNull(retailStore.getUser().getUserId(), "User ID is null");
+            assertNotNull(retailStore.getStoreId(), "Store ID is null");
 
             // 3. Create manufacture
             manufacture = manufactureService.create(ManufactureFactory.createManufacture("Candle Co."));
@@ -266,5 +273,92 @@ class OrderControllerTest {
         
         System.out.println("Product image retrieved successfully, size: " + imageResponse.getBody().length + " bytes");
         System.out.println("Product with image: " + product.getName() + " - Image available via API");
+    }
+
+    @Test
+    @org.junit.jupiter.api.Order(6)
+    void f_createOrderWithCardPayment() {
+        try {
+            // Create card payment method
+            PaymentMethod cardPaymentMethod = PaymentMethodFactory.createPaymentMethod(
+                    PaymentType.CREDIT_CARD, 
+                    LocalDateTime.now()
+            );
+            cardPaymentMethod = paymentMethodService.create(cardPaymentMethod);
+            assertNotNull(cardPaymentMethod, "Card PaymentMethod creation failed");
+
+            // Create card payment with card details
+            Payment cardPayment = PaymentFactory.createCardPayment(
+                    75.0, 
+                    cardPaymentMethod, 
+                    "9876543210987654", 
+                    "Jane Smith", 
+                    "06/26", 
+                    "456", 
+                    BankName.FNB
+            );
+            cardPayment = paymentService.create(cardPayment);
+            assertNotNull(cardPayment, "Card Payment creation failed");
+            assertNotNull(cardPayment.getCardNumber(), "Card number should not be null");
+            assertEquals("9876543210987654", cardPayment.getCardNumber());
+            assertEquals("Jane Smith", cardPayment.getNameOnCard());
+            assertEquals("06/26", cardPayment.getExpiryDate());
+            assertEquals("456", cardPayment.getCvv());
+            assertEquals(BankName.FNB, cardPayment.getBank());
+
+            // Create new order items for card payment order
+            Set<OrderItem> cardOrderItems = new HashSet<>();
+            OrderItem cardItem1 = OrderItemFactory.createOrderItem(1, product);
+            OrderItem cardItem2 = OrderItemFactory.createOrderItem(2, product);
+            cardOrderItems.add(cardItem1);
+            cardOrderItems.add(cardItem2);
+
+            // Create delivery for card payment order
+            Delivery cardDelivery = deliveryService.create(DeliveryFactory.createDelivery("Pending"));
+            assertNotNull(cardDelivery, "Card Delivery creation failed");
+
+            // Create invoice for card payment order
+            Invoice cardInvoice = invoiceService.create(InvoiceFactory.createInvoice(75.0));
+            assertNotNull(cardInvoice, "Card Invoice creation failed");
+
+            // Create order with card payment
+            Order cardOrder = OrderFactory.createOrder(
+                    "Pending",
+                    retailStore,
+                    cardOrderItems,
+                    cardDelivery,
+                    cardInvoice,
+                    cardPayment
+            );
+            assertNotNull(cardOrder, "Card Order creation failed");
+
+            // Set order reference on order items
+            cardOrder.getOrderItems().forEach(item -> item.setOrder(cardOrder));
+
+            // Create order via API
+            ResponseEntity<Order> response = restTemplate.postForEntity(
+                    orderURL() + "/create",
+                    cardOrder,
+                    Order.class
+            );
+
+            assertNotNull(response.getBody(), "Response body is null");
+            assertNotNull(response.getBody().getOrderNumber(), "Order number in response is null");
+            assertNotNull(response.getBody().getPayment(), "Payment should not be null");
+            assertNotNull(response.getBody().getPayment().getCardNumber(), "Card number should not be null");
+            assertEquals("9876543210987654", response.getBody().getPayment().getCardNumber());
+            assertEquals("Jane Smith", response.getBody().getPayment().getNameOnCard());
+            assertEquals("06/26", response.getBody().getPayment().getExpiryDate());
+            assertEquals("456", response.getBody().getPayment().getCvv());
+            assertEquals(BankName.FNB, response.getBody().getPayment().getBank());
+
+            System.out.println("Created Order with Card Payment: " + response.getBody());
+            System.out.println("Card Payment Details: " + response.getBody().getPayment());
+
+        } catch (Exception e) {
+            System.err.println("Card payment order creation failed: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 }

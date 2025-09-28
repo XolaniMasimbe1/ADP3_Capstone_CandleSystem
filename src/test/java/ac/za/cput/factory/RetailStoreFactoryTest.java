@@ -1,6 +1,7 @@
 package ac.za.cput.factory;
 
 import ac.za.cput.domain.RetailStore;
+import ac.za.cput.domain.Enum.Province;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -9,15 +10,23 @@ class RetailStoreFactoryTest {
 
     private  static RetailStore retailStore = RetailStoreFactory.createRetailStore(
             "PicknPay",
-            "picknpay_user",
-            "password123",
             "info@picknpay.com",
-            "0211234567",
-            "8001",
-            "123 Main Street",
+            "password123",
+            "123",
+            "Main Street",
+            "CBD",
             "Cape Town",
-            "Western Cape",
-            "South Africa"
+            Province.WESTERN_CAPE,
+            "8001",
+            "South Africa",
+            "John",
+            "Doe",
+            "john@picknpay.com",
+            "+27123456789",
+            "Jane",
+            "Smith",
+            "jane@picknpay.com",
+            "+27987654321"
     );
 
 
