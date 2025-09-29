@@ -1,7 +1,7 @@
 package ac.za.cput.controller;
 
 import ac.za.cput.domain.RetailStore;
-import ac.za.cput.domain.Contact;
+import ac.za.cput.domain.ContactPerson;
 import ac.za.cput.domain.Enum.Province;
 import ac.za.cput.factory.RetailStoreFactory;
 import ac.za.cput.service.RetailStoreService;
@@ -76,19 +76,19 @@ public class RetailStoreController {
                         retailStore.getAddress().getStreetName(),
                         retailStore.getAddress().getSuburb(),
                         retailStore.getAddress().getCity(),
-                        ac.za.cput.domain.Enum.Province.valueOf(retailStore.getAddress().getProvince()),
+                        retailStore.getAddress().getProvince(),
                         retailStore.getAddress().getPostalCode(),
                         retailStore.getAddress().getCountry(),
                         // Contact Person 1 - get from first contact if exists
-                        retailStore.getContacts() != null && retailStore.getContacts().size() > 0 ? retailStore.getContacts().get(0).getFirstName() : null,
-                        retailStore.getContacts() != null && retailStore.getContacts().size() > 0 ? retailStore.getContacts().get(0).getLastName() : null,
-                        retailStore.getContacts() != null && retailStore.getContacts().size() > 0 ? retailStore.getContacts().get(0).getEmail() : null,
-                        retailStore.getContacts() != null && retailStore.getContacts().size() > 0 ? retailStore.getContacts().get(0).getPhone() : null,
+                        retailStore.getContactPersons() != null && retailStore.getContactPersons().size() > 0 ? retailStore.getContactPersons().get(0).getFirstName() : null,
+                        retailStore.getContactPersons() != null && retailStore.getContactPersons().size() > 0 ? retailStore.getContactPersons().get(0).getLastName() : null,
+                        retailStore.getContactPersons() != null && retailStore.getContactPersons().size() > 0 ? retailStore.getContactPersons().get(0).getEmailAddress() : null,
+                        retailStore.getContactPersons() != null && retailStore.getContactPersons().size() > 0 ? retailStore.getContactPersons().get(0).getCellPhoneNumber() : null,
                         // Contact Person 2 - get from second contact if exists
-                        retailStore.getContacts() != null && retailStore.getContacts().size() > 1 ? retailStore.getContacts().get(1).getFirstName() : null,
-                        retailStore.getContacts() != null && retailStore.getContacts().size() > 1 ? retailStore.getContacts().get(1).getLastName() : null,
-                        retailStore.getContacts() != null && retailStore.getContacts().size() > 1 ? retailStore.getContacts().get(1).getEmail() : null,
-                        retailStore.getContacts() != null && retailStore.getContacts().size() > 1 ? retailStore.getContacts().get(1).getPhone() : null
+                        retailStore.getContactPersons() != null && retailStore.getContactPersons().size() > 1 ? retailStore.getContactPersons().get(1).getFirstName() : null,
+                        retailStore.getContactPersons() != null && retailStore.getContactPersons().size() > 1 ? retailStore.getContactPersons().get(1).getLastName() : null,
+                        retailStore.getContactPersons() != null && retailStore.getContactPersons().size() > 1 ? retailStore.getContactPersons().get(1).getEmailAddress() : null,
+                        retailStore.getContactPersons() != null && retailStore.getContactPersons().size() > 1 ? retailStore.getContactPersons().get(1).getCellPhoneNumber() : null
                 );
                 
                 if (newRetailStore == null) {
@@ -97,7 +97,18 @@ public class RetailStoreController {
 
                 // Save RetailStore
                 RetailStore savedStore = service.create(newRetailStore);
-                return ResponseEntity.ok(savedStore);
+                
+                // Create a simplified response to avoid circular references
+                RetailStore responseStore = new RetailStore.Builder()
+                        .setStoreId(savedStore.getStoreId())
+                        .setStoreNumber(savedStore.getStoreNumber())
+                        .setStoreName(savedStore.getStoreName())
+                        .setStoreEmail(savedStore.getStoreEmail())
+                        .setAddress(savedStore.getAddress())
+                        .setContactPersons(savedStore.getContactPersons())
+                        .build();
+                
+                return ResponseEntity.ok(responseStore);
             } catch (Exception e) {
                 e.printStackTrace(); // Log the exception for debugging
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -129,16 +140,13 @@ public class RetailStoreController {
 
         // Test endpoint to verify contact creation
         @PostMapping("/test-contact")
-        public ResponseEntity<String> testContactCreation(@RequestBody Contact contact) {
+        public ResponseEntity<String> testContactCreation(@RequestBody ContactPerson contactPerson) {
             try {
                 // Set a test storeId
-                contact.setStoreId("test-store-id");
-                contact.setContactId("test-contact-id");
-                contact.setCreatedAt(java.time.LocalDateTime.now());
-                contact.setUpdatedAt(java.time.LocalDateTime.now());
+                contactPerson.setContactPersonId("test-contact-id");
                 
                 // This should not fail with store_id constraint
-                return ResponseEntity.ok("Contact created successfully with storeId: " + contact.getStoreId());
+                return ResponseEntity.ok("Contact person created successfully with ID: " + contactPerson.getContactPersonId());
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
@@ -160,12 +168,11 @@ public class RetailStoreController {
 
         // Dynamic Contact Management Endpoints
         @PostMapping("/{storeId}/contacts")
-        public ResponseEntity<RetailStore> addContact(@PathVariable String storeId, @RequestBody Contact contact) {
+        public ResponseEntity<RetailStore> addContact(@PathVariable String storeId, @RequestBody ContactPerson contactPerson) {
             try {
                 RetailStore store = service.readById(storeId);
                 if (store != null) {
-                    contact.setStoreId(storeId);
-                    store.addContact(contact);
+                    store.addContactPerson(contactPerson);
                     RetailStore updatedStore = service.update(store);
                     return ResponseEntity.ok(updatedStore);
                 }
@@ -176,17 +183,17 @@ public class RetailStoreController {
         }
 
         @PutMapping("/{storeId}/contacts/{contactId}")
-        public ResponseEntity<RetailStore> updateContact(@PathVariable String storeId, @PathVariable String contactId, @RequestBody Contact contact) {
+        public ResponseEntity<RetailStore> updateContact(@PathVariable String storeId, @PathVariable String contactId, @RequestBody ContactPerson contactPerson) {
             try {
                 RetailStore store = service.readById(storeId);
                 if (store != null) {
-                    // Find and update the contact
-                    for (Contact c : store.getContacts()) {
-                        if (c.getContactId().equals(contactId)) {
-                            c.setFirstName(contact.getFirstName());
-                            c.setLastName(contact.getLastName());
-                            c.setEmail(contact.getEmail());
-                            c.setPhone(contact.getPhone());
+                    // Find and update the contact person
+                    for (ContactPerson c : store.getContactPersons()) {
+                        if (c.getContactPersonId().equals(contactId)) {
+                            c.setFirstName(contactPerson.getFirstName());
+                            c.setLastName(contactPerson.getLastName());
+                            c.setEmailAddress(contactPerson.getEmailAddress());
+                            c.setCellPhoneNumber(contactPerson.getCellPhoneNumber());
                             break;
                         }
                     }
@@ -204,7 +211,7 @@ public class RetailStoreController {
             try {
                 RetailStore store = service.readById(storeId);
                 if (store != null) {
-                    store.getContacts().removeIf(contact -> contact.getContactId().equals(contactId));
+                    store.getContactPersons().removeIf(contactPerson -> contactPerson.getContactPersonId().equals(contactId));
                     RetailStore updatedStore = service.update(store);
                     return ResponseEntity.ok(updatedStore);
                 }

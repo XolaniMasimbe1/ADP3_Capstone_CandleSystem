@@ -34,8 +34,8 @@ class RetailStoreControllerTest {
 		// Generate unique data for each test to avoid constraint violations
 		String timestamp = String.valueOf(System.currentTimeMillis());
 		retailStore = RetailStoreFactory.createRetailStore(
-				"PicknPay_" + timestamp,
-				"info_" + timestamp + "@picknpay.com",
+				"PicknPay_" ,
+				"info@picknpay.com",
 				"password123",
 				"123",
 				"Main Street",

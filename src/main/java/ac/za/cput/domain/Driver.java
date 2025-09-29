@@ -16,15 +16,8 @@ public class Driver {
     private String email;
     private String phoneNumber;
     
-    @Column(name = "license_number")
-    private String licenseNumber;  // Required for drivers
-    
-    @Column(name = "vehicle_type")
+    private String numberPlate;    // Required for drivers
     private String vehicleType;    // Required for drivers
-    
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "address_id", referencedColumnName = "addressId")
-    private Address address;
 
     // A public no-argument constructor is needed for Jackson deserialization
     public Driver() {}
@@ -35,9 +28,8 @@ public class Driver {
         this.passwordHash = builder.passwordHash;
         this.email = builder.email;
         this.phoneNumber = builder.phoneNumber;
-        this.licenseNumber = builder.licenseNumber;
+        this.numberPlate = builder.numberPlate;
         this.vehicleType = builder.vehicleType;
-        this.address = builder.address;
     }
 
     // Getters
@@ -46,9 +38,8 @@ public class Driver {
     public String getPasswordHash() { return passwordHash; }
     public String getEmail() { return email; }
     public String getPhoneNumber() { return phoneNumber; }
-    public String getLicenseNumber() { return licenseNumber; }
+    public String getNumberPlate() { return numberPlate; }
     public String getVehicleType() { return vehicleType; }
-    public Address getAddress() { return address; }
 
     // Public setters are required by Jackson for deserialization
     public void setDriverId(String driverId) { this.driverId = driverId; }
@@ -56,9 +47,8 @@ public class Driver {
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public void setEmail(String email) { this.email = email; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
-    public void setLicenseNumber(String licenseNumber) { this.licenseNumber = licenseNumber; }
+    public void setNumberPlate(String numberPlate) { this.numberPlate = numberPlate; }
     public void setVehicleType(String vehicleType) { this.vehicleType = vehicleType; }
-    public void setAddress(Address address) { this.address = address; }
 
     @Override
     public boolean equals(Object o) {
@@ -80,9 +70,8 @@ public class Driver {
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", phoneNumber='" + phoneNumber + '\'' +
-                ", licenseNumber='" + licenseNumber + '\'' +
+                ", numberPlate='" + numberPlate + '\'' +
                 ", vehicleType='" + vehicleType + '\'' +
-                ", address=" + address +
                 '}';
     }
 
@@ -92,9 +81,8 @@ public class Driver {
         private String passwordHash;
         private String email;
         private String phoneNumber;
-        private String licenseNumber;
+        private String numberPlate;
         private String vehicleType;
-        private Address address;
 
         public Builder setDriverId(String driverId) {
             this.driverId = driverId;
@@ -121,18 +109,13 @@ public class Driver {
             return this;
         }
 
-        public Builder setLicenseNumber(String licenseNumber) {
-            this.licenseNumber = licenseNumber;
+        public Builder setNumberPlate(String numberPlate) {
+            this.numberPlate = numberPlate;
             return this;
         }
 
         public Builder setVehicleType(String vehicleType) {
             this.vehicleType = vehicleType;
-            return this;
-        }
-
-        public Builder setAddress(Address address) {
-            this.address = address;
             return this;
         }
 
@@ -142,9 +125,8 @@ public class Driver {
             this.passwordHash = driver.passwordHash;
             this.email = driver.email;
             this.phoneNumber = driver.phoneNumber;
-            this.licenseNumber = driver.licenseNumber;
+            this.numberPlate = driver.numberPlate;
             this.vehicleType = driver.vehicleType;
-            this.address = driver.address;
             return this;
         }
 

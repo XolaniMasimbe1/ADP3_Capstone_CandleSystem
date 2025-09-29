@@ -30,9 +30,8 @@ public class RetailStore {
     
     // Contact persons relationship
     @OneToMany(mappedBy = "retailStore", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @OrderBy("createdAt ASC")
-    @JsonManagedReference
-    private List<Contact> contacts = new ArrayList<>();
+    @JsonManagedReference("retailStore")
+    private List<ContactPerson> contactPersons = new ArrayList<>();
     
 
     // A public no-argument constructor is needed for Jackson deserialization
@@ -45,7 +44,7 @@ public class RetailStore {
         this.storeEmail = builder.storeEmail;
         this.passwordHash = builder.passwordHash;
         this.address = builder.address;
-        this.contacts = builder.contacts != null ? builder.contacts : new ArrayList<>();
+        this.contactPersons = builder.contactPersons != null ? builder.contactPersons : new ArrayList<>();
     }
 
     // Getters
@@ -55,21 +54,20 @@ public class RetailStore {
     public String getStoreEmail() { return storeEmail; }
     public String getPasswordHash() { return passwordHash; }
     public Address getAddress() { return address; }
-    public List<Contact> getContacts() { return contacts; }
+    public List<ContactPerson> getContactPersons() { return contactPersons; }
     
     // Helper methods for contact management
-    public Contact getFirstContact() {
-        return contacts.isEmpty() ? null : contacts.get(0);
+    public ContactPerson getFirstContactPerson() {
+        return contactPersons.isEmpty() ? null : contactPersons.get(0);
     }
     
-    public Contact getSecondContact() {
-        return contacts.size() > 1 ? contacts.get(1) : null;
+    public ContactPerson getSecondContactPerson() {
+        return contactPersons.size() > 1 ? contactPersons.get(1) : null;
     }
     
-    public void addContact(Contact contact) {
-        if (contact != null) {
-            contact.setRetailStore(this);
-            this.contacts.add(contact);
+    public void addContactPerson(ContactPerson contactPerson) {
+        if (contactPerson != null) {
+            this.contactPersons.add(contactPerson);
         }
     }
 
@@ -98,8 +96,8 @@ public class RetailStore {
         this.address = address;
     }
 
-    public void setContacts(List<Contact> contacts) {
-        this.contacts = contacts != null ? contacts : new ArrayList<>();
+    public void setContactPersons(List<ContactPerson> contactPersons) {
+        this.contactPersons = contactPersons != null ? contactPersons : new ArrayList<>();
     }
 
     @Override
@@ -110,7 +108,7 @@ public class RetailStore {
                 ", storeName='" + storeName + '\'' +
                 ", storeEmail='" + storeEmail + '\'' +
                 ", address=" + address +
-                ", contacts=" + contacts.size() + " contacts" +
+                ", contactPersons=" + contactPersons.size() + " contact persons" +
                 '}';
     }
 
@@ -121,7 +119,7 @@ public class RetailStore {
         private String storeEmail;
         private String passwordHash;
         private Address address;
-        private List<Contact> contacts = new ArrayList<>();
+        private List<ContactPerson> contactPersons = new ArrayList<>();
 
         public Builder setStoreId(String storeId) {
             this.storeId = storeId;
@@ -153,14 +151,14 @@ public class RetailStore {
             return this;
         }
 
-        public Builder setContacts(List<Contact> contacts) {
-            this.contacts = contacts != null ? contacts : new ArrayList<>();
+        public Builder setContactPersons(List<ContactPerson> contactPersons) {
+            this.contactPersons = contactPersons != null ? contactPersons : new ArrayList<>();
             return this;
         }
 
-        public Builder addContact(Contact contact) {
-            if (contact != null) {
-                this.contacts.add(contact);
+        public Builder addContactPerson(ContactPerson contactPerson) {
+            if (contactPerson != null) {
+                this.contactPersons.add(contactPerson);
             }
             return this;
         }
@@ -172,7 +170,7 @@ public class RetailStore {
             this.storeEmail = retailStore.storeEmail;
             this.passwordHash = retailStore.passwordHash;
             this.address = retailStore.address;
-            this.contacts = retailStore.contacts != null ? new ArrayList<>(retailStore.contacts) : new ArrayList<>();
+            this.contactPersons = retailStore.contactPersons != null ? new ArrayList<>(retailStore.contactPersons) : new ArrayList<>();
             return this;
         }
 

@@ -2,7 +2,7 @@ package ac.za.cput.factory;
 
 import ac.za.cput.domain.RetailStore;
 import ac.za.cput.domain.Address;
-import ac.za.cput.domain.Contact;
+import ac.za.cput.domain.ContactPerson;
 import ac.za.cput.domain.Enum.Province;
 import ac.za.cput.util.Helper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -32,28 +32,28 @@ public class RetailStoreFactory {
 
         // Create Store Address
         Address storeAddress = AddressFactory.createAddress(
-                streetNumber, streetName, suburb, city, province.toString(), postalCode, country);
+                streetNumber, streetName, suburb, city, postalCode, province, country);
 
         // Create Contact persons
-        List<Contact> contacts = new ArrayList<>();
+        List<ContactPerson> contactPersons = new ArrayList<>();
         
         // Contact Person 1
         if (!Helper.isNullOrEmpty(contactPerson1FirstName) && !Helper.isNullOrEmpty(contactPerson1LastName) &&
             !Helper.isNullOrEmpty(contactPerson1Email) && !Helper.isNullOrEmpty(contactPerson1Phone)) {
-            Contact contact1 = ContactFactory.createContact(contactPerson1FirstName, contactPerson1LastName, 
+            ContactPerson contactPerson1 = ContactPersonFactory.createContactPerson(contactPerson1FirstName, contactPerson1LastName, 
                                                            contactPerson1Email, contactPerson1Phone);
-            if (contact1 != null) {
-                contacts.add(contact1);
+            if (contactPerson1 != null) {
+                contactPersons.add(contactPerson1);
             }
         }
         
         // Contact Person 2
         if (!Helper.isNullOrEmpty(contactPerson2FirstName) && !Helper.isNullOrEmpty(contactPerson2LastName) &&
             !Helper.isNullOrEmpty(contactPerson2Email) && !Helper.isNullOrEmpty(contactPerson2Phone)) {
-            Contact contact2 = ContactFactory.createContact(contactPerson2FirstName, contactPerson2LastName, 
+            ContactPerson contactPerson2 = ContactPersonFactory.createContactPerson(contactPerson2FirstName, contactPerson2LastName, 
                                                            contactPerson2Email, contactPerson2Phone);
-            if (contact2 != null) {
-                contacts.add(contact2);
+            if (contactPerson2 != null) {
+                contactPersons.add(contactPerson2);
             }
         }
 
@@ -66,13 +66,13 @@ public class RetailStoreFactory {
                 .setStoreEmail(storeEmail)
                 .setPasswordHash(passwordHash)
                 .setAddress(storeAddress)
-                .setContacts(contacts)
+                .setContactPersons(contactPersons)
                 .build();
         
-        // Ensure all contacts have the correct relationship
-        if (retailStore != null && retailStore.getContacts() != null) {
-            for (Contact contact : retailStore.getContacts()) {
-                contact.setRetailStore(retailStore);
+        // Ensure all contact persons have the correct relationship
+        if (retailStore != null && retailStore.getContactPersons() != null) {
+            for (ContactPerson contactPerson : retailStore.getContactPersons()) {
+                contactPerson.setRetailStore(retailStore);
             }
         }
         

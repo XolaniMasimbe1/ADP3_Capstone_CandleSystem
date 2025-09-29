@@ -59,9 +59,9 @@ public class DriverController {
         return service.findByEmail(email);
     }
 
-    @GetMapping("/find/license/{licenseNumber}")
-    public Optional<Driver> findByLicenseNumber(@PathVariable String licenseNumber) {
-        return service.findByLicenseNumber(licenseNumber);
+    @GetMapping("/find/numberplate/{numberPlate}")
+    public Optional<Driver> findByNumberPlate(@PathVariable String numberPlate) {
+        return service.findByNumberPlate(numberPlate);
     }
 
     @GetMapping("/all")
@@ -82,8 +82,8 @@ public class DriverController {
                 return ResponseEntity.badRequest().build();
             }
 
-            // Check if license number exists
-            if (service.findByLicenseNumber(driver.getLicenseNumber()).isPresent()) {
+            // Check if number plate exists
+            if (service.findByNumberPlate(driver.getNumberPlate()).isPresent()) {
                 return ResponseEntity.badRequest().build();
             }
 

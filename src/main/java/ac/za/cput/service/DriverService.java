@@ -55,7 +55,7 @@ public class DriverService implements IService<Driver, String> {
         return repository.findByEmail(email);
     }
 
-    public Optional<Driver> findByLicenseNumber(String licenseNumber) {
-        return repository.findByLicenseNumber(licenseNumber);
+    public Optional<Driver> findByNumberPlate(String numberPlate) {
+        return repository.findByNumberPlate(numberPlate);
     }
 }

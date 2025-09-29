@@ -13,12 +13,11 @@ public class OrderFactory {
             RetailStore retailStore,
             Set<OrderItem> orderItems,
             Delivery delivery,
-            Invoice invoice,
-            Payment payment) {
+            Invoice invoice) {
 
         if (Helper.isNullOrEmpty(orderStatus) || retailStore == null
                 || orderItems == null || orderItems.isEmpty()
-                || delivery == null || invoice == null || payment == null) {
+                || delivery == null || invoice == null) {
             return null;
         }
 
@@ -32,7 +31,6 @@ public class OrderFactory {
                 .setOrderItems(orderItems)
                 .setDelivery(delivery)
                 .setInvoice(invoice)
-                .setPayment(payment)
                 .build();
 
         // Set the order reference for each order item

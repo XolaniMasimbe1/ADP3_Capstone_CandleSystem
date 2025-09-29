@@ -15,10 +15,6 @@ public class Admin {
     private String passwordHash;
     private String email;
     private String phoneNumber;
-    
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "address_id", referencedColumnName = "addressId")
-    private Address address;
 
     // A public no-argument constructor is needed for Jackson deserialization
     public Admin() {}
@@ -29,7 +25,6 @@ public class Admin {
         this.passwordHash = builder.passwordHash;
         this.email = builder.email;
         this.phoneNumber = builder.phoneNumber;
-        this.address = builder.address;
     }
 
     // Getters
@@ -38,7 +33,6 @@ public class Admin {
     public String getPasswordHash() { return passwordHash; }
     public String getEmail() { return email; }
     public String getPhoneNumber() { return phoneNumber; }
-    public Address getAddress() { return address; }
 
     // Public setters are required by Jackson for deserialization
     public void setAdminId(String adminId) { this.adminId = adminId; }
@@ -46,7 +40,6 @@ public class Admin {
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public void setEmail(String email) { this.email = email; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
-    public void setAddress(Address address) { this.address = address; }
 
     @Override
     public boolean equals(Object o) {
@@ -68,7 +61,6 @@ public class Admin {
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", phoneNumber='" + phoneNumber + '\'' +
-                ", address=" + address +
                 '}';
     }
 
@@ -78,7 +70,6 @@ public class Admin {
         private String passwordHash;
         private String email;
         private String phoneNumber;
-        private Address address;
 
         public Builder setAdminId(String adminId) {
             this.adminId = adminId;
@@ -105,18 +96,12 @@ public class Admin {
             return this;
         }
 
-        public Builder setAddress(Address address) {
-            this.address = address;
-            return this;
-        }
-
         public Builder copy(Admin admin) {
             this.adminId = admin.adminId;
             this.username = admin.username;
             this.passwordHash = admin.passwordHash;
             this.email = admin.email;
             this.phoneNumber = admin.phoneNumber;
-            this.address = admin.address;
             return this;
         }
 
