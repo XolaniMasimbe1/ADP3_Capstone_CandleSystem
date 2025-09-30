@@ -1,15 +1,17 @@
 package ac.za.cput.controller;
 
 import ac.za.cput.domain.RetailStore;
+import ac.za.cput.domain.ContactPerson;
+import ac.za.cput.domain.Enum.Province;
 import ac.za.cput.factory.RetailStoreFactory;
 import ac.za.cput.service.RetailStoreService;
-import ac.za.cput.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -19,13 +21,11 @@ import java.util.Optional;
 @Transactional
 public class RetailStoreController {
     private final RetailStoreService service;
-    private final UserService userService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Autowired
-    public RetailStoreController(RetailStoreService service, UserService userService) {
+    public RetailStoreController(RetailStoreService service) {
         this.service = service;
-        this.userService = userService;
     }
 
     @PostMapping("/create")
@@ -43,10 +43,6 @@ public class RetailStoreController {
         return service.readById(storeId);
     }
 
-    @GetMapping("/read/user/{userId}")
-    public RetailStore readByUserId(@PathVariable String userId) {
-        return service.readByUserId(userId);
-    }
 
     @PutMapping("/update")
     public RetailStore update(@RequestBody RetailStore retailStore) {
@@ -63,27 +59,39 @@ public class RetailStoreController {
         return service.getAll();
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<RetailStore> registerStore(@RequestBody RetailStore retailStore) {
-        try {
-            // Check if username exists
-            if (retailStore.getUser() != null && retailStore.getUser().getUsername() != null) {
-                if (userService.findByUsername(retailStore.getUser().getUsername()).isPresent()) {
+        @PostMapping("/register")
+        public ResponseEntity<RetailStore> registerStore(@RequestBody RetailStore retailStore) {
+            try {
+                // Check if store email exists
+                if (service.findByStoreEmail(retailStore.getStoreEmail()).isPresent()) {
                     return ResponseEntity.badRequest().build();
                 }
 
-                // Create RetailStore using RetailStoreFactory
+                // Hash the password before creating the store
+                String encodedPassword = passwordEncoder.encode(retailStore.getPasswordHash());
+                
+                // Create RetailStore with Contact relationship
                 RetailStore newRetailStore = RetailStoreFactory.createRetailStore(
                         retailStore.getStoreName(),
-                        retailStore.getUser().getUsername(),
-                        "defaultPassword", // You can set a default or get from request
-                        retailStore.getUser().getContactDetails().getEmail(),
-                        retailStore.getUser().getContactDetails().getPhoneNumber(),
-                        retailStore.getUser().getContactDetails().getPostalCode(),
-                        retailStore.getUser().getContactDetails().getStreet(),
-                        retailStore.getUser().getContactDetails().getCity(),
-                        retailStore.getUser().getContactDetails().getProvince(),
-                        retailStore.getUser().getContactDetails().getCountry()
+                        retailStore.getStoreEmail(),
+                        encodedPassword, // Now using encoded password
+                        retailStore.getAddress().getStreetNumber(),
+                        retailStore.getAddress().getStreetName(),
+                        retailStore.getAddress().getSuburb(),
+                        retailStore.getAddress().getCity(),
+                        retailStore.getAddress().getProvince(),
+                        retailStore.getAddress().getPostalCode(),
+                        retailStore.getAddress().getCountry(),
+                        // Contact Person 1 - get from first contact if exists
+                        retailStore.getContactPersons() != null && retailStore.getContactPersons().size() > 0 ? retailStore.getContactPersons().get(0).getFirstName() : null,
+                        retailStore.getContactPersons() != null && retailStore.getContactPersons().size() > 0 ? retailStore.getContactPersons().get(0).getLastName() : null,
+                        retailStore.getContactPersons() != null && retailStore.getContactPersons().size() > 0 ? retailStore.getContactPersons().get(0).getEmailAddress() : null,
+                        retailStore.getContactPersons() != null && retailStore.getContactPersons().size() > 0 ? retailStore.getContactPersons().get(0).getCellPhoneNumber() : null,
+                        // Contact Person 2 - get from second contact if exists
+                        retailStore.getContactPersons() != null && retailStore.getContactPersons().size() > 1 ? retailStore.getContactPersons().get(1).getFirstName() : null,
+                        retailStore.getContactPersons() != null && retailStore.getContactPersons().size() > 1 ? retailStore.getContactPersons().get(1).getLastName() : null,
+                        retailStore.getContactPersons() != null && retailStore.getContactPersons().size() > 1 ? retailStore.getContactPersons().get(1).getEmailAddress() : null,
+                        retailStore.getContactPersons() != null && retailStore.getContactPersons().size() > 1 ? retailStore.getContactPersons().get(1).getCellPhoneNumber() : null
                 );
                 
                 if (newRetailStore == null) {
@@ -92,26 +100,128 @@ public class RetailStoreController {
 
                 // Save RetailStore
                 RetailStore savedStore = service.create(newRetailStore);
-                return ResponseEntity.ok(savedStore);
+                
+                // Create a simplified response to avoid circular references
+                RetailStore responseStore = new RetailStore.Builder()
+                        .setStoreId(savedStore.getStoreId())
+                        .setStoreNumber(savedStore.getStoreNumber())
+                        .setStoreName(savedStore.getStoreName())
+                        .setStoreEmail(savedStore.getStoreEmail())
+                        .setAddress(savedStore.getAddress())
+                        .setContactPersons(savedStore.getContactPersons())
+                        .build();
+                
+                return ResponseEntity.ok(responseStore);
+            } catch (Exception e) {
+                e.printStackTrace(); // Log the exception for debugging
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-    }
 
-    @PostMapping("/login")
-    public ResponseEntity<RetailStore> login(@RequestBody RetailStore retailStore) {
-        // Check if it's a retail store
-        if (retailStore.getUser() != null && retailStore.getUser().getUsername() != null) {
-            Optional<RetailStore> optionalStore = service.findByUsername(retailStore.getUser().getUsername());
-            if (optionalStore.isPresent()) {
-                RetailStore foundStore = optionalStore.get();
-                if (passwordEncoder.matches("defaultPassword", foundStore.getUser().getPasswordHash())) {
-                    return ResponseEntity.ok(foundStore);
+        @PostMapping("/login")
+        public ResponseEntity<RetailStore> login(@RequestBody RetailStore loginRequest) {
+            try {
+
+                Optional<RetailStore> optionalStore = service.findByStoreEmail(loginRequest.getStoreEmail());
+                if (optionalStore.isPresent()) {
+                    RetailStore foundStore = optionalStore.get();
+
+                    if (passwordEncoder.matches(loginRequest.getPasswordHash(), foundStore.getPasswordHash())) {
+                        return ResponseEntity.ok(foundStore);
+                    }
                 }
+                return ResponseEntity.badRequest().build();
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
         }
-        return ResponseEntity.badRequest().build();
+
+        @GetMapping("/provinces")
+        public ResponseEntity<Province[]> getProvinces() {
+            return ResponseEntity.ok(Province.values());
+        }
+
+        // Test endpoint to verify contact creation
+        @PostMapping("/test-contact")
+        public ResponseEntity<String> testContactCreation(@RequestBody ContactPerson contactPerson) {
+            try {
+                // Set a test storeId
+                contactPerson.setContactPersonId("test-contact-id");
+                
+                // This should not fail with store_id constraint
+                return ResponseEntity.ok("Contact person created successfully with ID: " + contactPerson.getContactPersonId());
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
+            }
+        }
+
+        @GetMapping("/{storeId}/contacts")
+        public ResponseEntity<RetailStore> getContacts(@PathVariable String storeId) {
+            try {
+                RetailStore store = service.readById(storeId);
+                if (store != null) {
+                    return ResponseEntity.ok(store);
+                }
+                return ResponseEntity.notFound().build();
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+
+        // Dynamic Contact Management Endpoints
+        @PostMapping("/{storeId}/contacts")
+        public ResponseEntity<RetailStore> addContact(@PathVariable String storeId, @RequestBody ContactPerson contactPerson) {
+            try {
+                RetailStore store = service.readById(storeId);
+                if (store != null) {
+                    store.addContactPerson(contactPerson);
+                    RetailStore updatedStore = service.update(store);
+                    return ResponseEntity.ok(updatedStore);
+                }
+                return ResponseEntity.notFound().build();
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+
+        @PutMapping("/{storeId}/contacts/{contactId}")
+        public ResponseEntity<RetailStore> updateContact(@PathVariable String storeId, @PathVariable String contactId, @RequestBody ContactPerson contactPerson) {
+            try {
+                RetailStore store = service.readById(storeId);
+                if (store != null) {
+                    // Find and update the contact person
+                    for (ContactPerson c : store.getContactPersons()) {
+                        if (c.getContactPersonId().equals(contactId)) {
+                            c.setFirstName(contactPerson.getFirstName());
+                            c.setLastName(contactPerson.getLastName());
+                            c.setEmailAddress(contactPerson.getEmailAddress());
+                            c.setCellPhoneNumber(contactPerson.getCellPhoneNumber());
+                            break;
+                        }
+                    }
+                    RetailStore updatedStore = service.update(store);
+                    return ResponseEntity.ok(updatedStore);
+                }
+                return ResponseEntity.notFound().build();
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+
+        @DeleteMapping("/{storeId}/contacts/{contactId}")
+        public ResponseEntity<RetailStore> deleteContact(@PathVariable String storeId, @PathVariable String contactId) {
+            try {
+                RetailStore store = service.readById(storeId);
+                if (store != null) {
+                    store.getContactPersons().removeIf(contactPerson -> contactPerson.getContactPersonId().equals(contactId));
+                    RetailStore updatedStore = service.update(store);
+                    return ResponseEntity.ok(updatedStore);
+                }
+                return ResponseEntity.notFound().build();
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+
     }
-}

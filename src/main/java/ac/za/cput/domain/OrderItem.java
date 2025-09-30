@@ -13,7 +13,7 @@ public class OrderItem {
     private double unitPrice;
 
     @ManyToOne
-    @JoinColumn(name = "product_id", referencedColumnName = "productNumber")
+    @JoinColumn(name = "product_id", referencedColumnName = "product_number")
     private Product product;
 
     @ManyToOne

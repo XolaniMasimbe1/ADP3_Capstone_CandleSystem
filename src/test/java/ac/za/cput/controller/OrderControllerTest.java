@@ -1,7 +1,7 @@
 package ac.za.cput.controller;
 
 import ac.za.cput.domain.*;
-import ac.za.cput.domain.Enum.PaymentType;
+import ac.za.cput.domain.Enum.Province;
 import ac.za.cput.domain.Order;
 import ac.za.cput.factory.*;
 import ac.za.cput.service.*;
@@ -12,7 +12,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,15 +36,9 @@ class OrderControllerTest {
     @Autowired
     private ManufactureService manufactureService;
     @Autowired
-    private UserService userService;
-    @Autowired
     private DeliveryService deliveryService;
     @Autowired
     private InvoiceService invoiceService;
-    @Autowired
-    private PaymentService paymentService;
-    @Autowired
-    private PaymentMethodService paymentMethodService;
 
     private Order order;
     private RetailStore retailStore;
@@ -53,8 +46,6 @@ class OrderControllerTest {
     private Manufacture manufacture;
     private Delivery delivery;
     private Invoice invoice;
-    private Payment payment;
-    private PaymentMethod paymentMethod;
     private Set<OrderItem> orderItems;
 
     private String baseURL() {
@@ -74,20 +65,27 @@ class OrderControllerTest {
             // 1. Create retail store (RetailStore extends User, so no need for separate User)
             retailStore = retailStoreService.create(RetailStoreFactory.createRetailStore(
                     "PicknPay_" + timestamp,
-                    "picknpay_user_" + timestamp,
-                    "password123",
                     "picknpay_" + timestamp + "@gmail.com",
-                    "0833133820",
-                    "8001",
-                    "123 Main Street",
+                    "password123",
+                    "123",
+                    "Main Street",
+                    "CBD",
                     "Cape Town",
-                    "Western Cape",
-                    "South Africa"
+                    Province.WESTERN_CAPE,
+                    "8001",
+                    "South Africa",
+                    "John",
+                    "Doe",
+                    "john@picknpay.com",
+                    "+27123456789",
+                    "Jane",
+                    "Smith",
+                    "jane@picknpay.com",
+                    "+27987654321"
             ));
             assertNotNull(retailStore, "RetailStore creation failed");
             assertNotNull(retailStore.getStoreNumber(), "RetailStore ID is null");
-            assertNotNull(retailStore.getUser(), "User is null");
-            assertNotNull(retailStore.getUser().getUserId(), "User ID is null");
+            assertNotNull(retailStore.getStoreId(), "Store ID is null");
 
             // 3. Create manufacture
             manufacture = manufactureService.create(ManufactureFactory.createManufacture("Candle Co."));
@@ -128,29 +126,13 @@ class OrderControllerTest {
             assertNotNull(invoice, "Invoice creation failed");
             assertNotNull(invoice.getInvoiceNumber(), "Invoice ID is null");
 
-            // 8. Create payment method
-            paymentMethod = paymentMethodService.create(
-                    PaymentMethodFactory.createPaymentMethod(
-                            PaymentType.CREDIT_CARD,
-                            LocalDateTime.now()
-                    )
-            );
-            assertNotNull(paymentMethod, "PaymentMethod creation failed");
-            assertNotNull(paymentMethod.getPaymentMethodId(), "PaymentMethod ID is null");
-
-            // 9. Create payment
-            payment = paymentService.create(PaymentFactory.createPayment(50.00, paymentMethod));
-            assertNotNull(payment, "Payment creation failed");
-            assertNotNull(payment.getPaymentNumber(), "Payment ID is null");
-
-            // 10. Create order
+            // 8. Create order
             order = OrderFactory.createOrder(
                     "Pending",
                     retailStore,
                     orderItems,
                     delivery,
-                    invoice,
-                    payment
+                    invoice
             );
             assertNotNull(order, "Order creation failed");
             assertNotNull(order.getOrderNumber(), "Order number is null");
@@ -267,4 +249,5 @@ class OrderControllerTest {
         System.out.println("Product image retrieved successfully, size: " + imageResponse.getBody().length + " bytes");
         System.out.println("Product with image: " + product.getName() + " - Image available via API");
     }
+
 }

@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class DriverService {
+public class DriverService implements IService<Driver, String> {
     private final DriverRepository repository;
 
     @Autowired
@@ -17,43 +17,45 @@ public class DriverService {
         this.repository = repository;
     }
 
+    @Override
     public Driver create(Driver driver) {
         return repository.save(driver);
     }
 
+    @Override
     public Driver read(String driverId) {
-        return this.repository.findById(driverId).orElse(null);
+        return repository.findById(driverId).orElse(null);
     }
 
+    @Override
     public Driver update(Driver driver) {
-        return this.repository.save(driver);
+        if (repository.existsById(driver.getDriverId())) {
+            return repository.save(driver);
+        }
+        return null;
     }
 
     public boolean delete(String driverId) {
-        if (this.repository.existsById(driverId)) {
-            this.repository.deleteById(driverId);
+        if (repository.existsById(driverId)) {
+            repository.deleteById(driverId);
             return true;
         }
         return false;
     }
 
     public List<Driver> getAll() {
-        return this.repository.findAll();
-    }
-
-    public Optional<Driver> findByLicenseNumber(String licenseNumber) {
-        return this.repository.findByLicenseNumber(licenseNumber);
+        return repository.findAll();
     }
 
     public Optional<Driver> findByUsername(String username) {
-        return this.repository.findByUser_Username(username);
+        return repository.findByUsername(username);
     }
 
     public Optional<Driver> findByEmail(String email) {
-        return this.repository.findByUser_ContactDetails_Email(email);
+        return repository.findByEmail(email);
     }
 
-    public Driver readByUserId(String userId) {
-        return this.repository.findByUser_UserId(userId).orElse(null);
+    public Optional<Driver> findByNumberPlate(String numberPlate) {
+        return repository.findByNumberPlate(numberPlate);
     }
 }

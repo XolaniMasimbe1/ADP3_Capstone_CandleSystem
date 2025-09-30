@@ -1,6 +1,7 @@
 package ac.za.cput.controller;
 
 import ac.za.cput.domain.RetailStore;
+import ac.za.cput.domain.Enum.Province;
 import ac.za.cput.factory.RetailStoreFactory;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,16 +34,24 @@ class RetailStoreControllerTest {
 		// Generate unique data for each test to avoid constraint violations
 		String timestamp = String.valueOf(System.currentTimeMillis());
 		retailStore = RetailStoreFactory.createRetailStore(
-				"PicknPay_" + timestamp,
-				"picknpay_user_" + timestamp,
+				"PicknPay_" ,
+				"info@picknpay.com",
 				"password123",
-				"info_" + timestamp + "@picknpay.com",
-				"0211234567",
-				"8001",
-				"123 Main Street",
+				"123",
+				"Main Street",
+				"CBD",
 				"Cape Town",
-				"Western Cape",
-				"South Africa"
+				Province.WESTERN_CAPE,
+				"8001",
+				"South Africa",
+				"John",
+				"Doe",
+				"john@picknpay.com",
+				"+27123456789",
+				"Jane",
+				"Smith",
+				"jane@picknpay.com",
+				"+27987654321"
 		);
 	}
 

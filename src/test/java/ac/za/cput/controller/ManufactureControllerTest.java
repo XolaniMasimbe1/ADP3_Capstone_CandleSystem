@@ -54,7 +54,7 @@ class ManufactureControllerTest {
     void getAll() {
         ResponseEntity<Manufacture[]> response = restTemplate.getForEntity(MANUFACTURE_URL + "/all", Manufacture[].class);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().length > 0);
         System.out.println("All Products: " + response.getBody().length);

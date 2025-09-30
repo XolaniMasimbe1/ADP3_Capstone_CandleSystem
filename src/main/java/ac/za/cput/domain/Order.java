@@ -16,7 +16,7 @@ public class Order {
     private String orderStatus;
 
     @ManyToOne
-    @JoinColumn(name = "retail_store_id")
+    @JoinColumn(name = "store_id")
     private RetailStore retailStore;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -31,9 +31,6 @@ public class Order {
     @JoinColumn(name = "invoice_number", referencedColumnName = "invoiceNumber")
     private Invoice invoice;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "payment_id", referencedColumnName = "paymentNumber")
-    private Payment payment;
 
 
     public void addOrderItem(OrderItem item) {
@@ -54,7 +51,6 @@ public class Order {
         this.retailStore = builder.retailStore;
         this.delivery = builder.delivery;
         this.invoice = builder.invoice;
-        this.payment = builder.payment;
 
 
         if (builder.orderItems != null) {
@@ -75,7 +71,6 @@ public class Order {
     public Set<OrderItem> getOrderItems() { return orderItems; }
     public Delivery getDelivery() { return delivery; }
     public Invoice getInvoice() { return invoice; }
-    public Payment getPayment() { return payment; }
 
     @Override
     public boolean equals(Object o) {
@@ -109,12 +104,10 @@ public class Order {
         private String orderNumber;
         private LocalDate orderDate;
         private String orderStatus;
-        private double totalAmount;
         private RetailStore retailStore;
         private Set<OrderItem> orderItems;
         private Delivery delivery;
         private Invoice invoice;
-        private Payment payment;
 
         public Builder setOrderNumber(String orderNumber) {
             this.orderNumber = orderNumber;
@@ -131,10 +124,6 @@ public class Order {
             return this;
         }
 
-        public Builder setTotalAmount(double totalAmount) {
-            this.totalAmount = totalAmount;
-            return this;
-        }
 
         public Builder setRetailStore(RetailStore retailStore) {
             this.retailStore = retailStore;
@@ -156,10 +145,6 @@ public class Order {
             return this;
         }
 
-        public Builder setPayment(Payment payment) {
-            this.payment = payment;
-            return this;
-        }
 
         public Builder copy(Order order) {
             this.orderNumber = order.orderNumber;
@@ -169,7 +154,6 @@ public class Order {
             this.orderItems = order.orderItems;
             this.delivery = order.delivery;
             this.invoice = order.invoice;
-            this.payment = order.payment;
             return this;
         }
 

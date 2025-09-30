@@ -4,8 +4,10 @@ import jakarta.persistence.*;
 import java.util.Objects;
 
 @Entity
+@Table(name = "product")
 public class Product {
     @Id
+    @Column(name = "product_number")
     private String productNumber;
     private String name;
     private double price;

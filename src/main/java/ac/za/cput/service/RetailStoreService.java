@@ -43,11 +43,8 @@ public class RetailStoreService implements IRetailStoreService {
         return this.repository.findByStoreNumber(storeNumber);
     }
 
-    public RetailStore readByUserId(String userId) {
-        return this.repository.findByUser_UserId(userId).orElse(null);
-    }
 
-    public Optional<RetailStore> findByUsername(String username) {
-        return this.repository.findByUser_Username(username);
+    public Optional<RetailStore> findByStoreEmail(String storeEmail) {
+        return this.repository.findByStoreEmail(storeEmail);
     }
 }

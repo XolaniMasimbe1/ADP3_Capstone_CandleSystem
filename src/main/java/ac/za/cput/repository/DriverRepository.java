@@ -8,8 +8,7 @@ import java.util.Optional;
 
 @Repository
 public interface DriverRepository extends JpaRepository<Driver, String> {
-    Optional<Driver> findByLicenseNumber(String licenseNumber);
-    Optional<Driver> findByUser_Username(String username);
-    Optional<Driver> findByUser_ContactDetails_Email(String email);
-    Optional<Driver> findByUser_UserId(String userId);
+    Optional<Driver> findByUsername(String username);
+    Optional<Driver> findByEmail(String email);
+    Optional<Driver> findByNumberPlate(String numberPlate);
 }
