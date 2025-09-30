@@ -1,6 +1,7 @@
 package ac.za.cput.controller;
 
 import ac.za.cput.domain.Product;
+import ac.za.cput.factory.ProductFactory;
 import ac.za.cput.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -29,7 +30,23 @@ public class ProductController {
 
     @PostMapping("/create")
     public Product create(@RequestBody Product product) {
-        return service.create(product);
+        // Use ProductFactory to ensure productNumber is generated
+        Product newProduct = ProductFactory.createProduct(
+            product.getName(),
+            product.getPrice(),
+            product.getStockQuantity(),
+            product.getScent(),
+            product.getColor(),
+            product.getSize(),
+            product.getImageData(),
+            product.getManufacturer()
+        );
+        
+        if (newProduct == null) {
+            throw new RuntimeException("Failed to create product - invalid data provided");
+        }
+        
+        return service.create(newProduct);
     }
 
     @GetMapping("/read/{productNumber}")

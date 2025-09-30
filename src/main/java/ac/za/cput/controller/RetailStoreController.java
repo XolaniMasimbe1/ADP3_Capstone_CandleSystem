@@ -67,11 +67,14 @@ public class RetailStoreController {
                     return ResponseEntity.badRequest().build();
                 }
 
+                // Hash the password before creating the store
+                String encodedPassword = passwordEncoder.encode(retailStore.getPasswordHash());
+                
                 // Create RetailStore with Contact relationship
                 RetailStore newRetailStore = RetailStoreFactory.createRetailStore(
                         retailStore.getStoreName(),
                         retailStore.getStoreEmail(),
-                        retailStore.getPasswordHash(), // This is actually the plain password from frontend
+                        encodedPassword, // Now using encoded password
                         retailStore.getAddress().getStreetNumber(),
                         retailStore.getAddress().getStreetName(),
                         retailStore.getAddress().getSuburb(),
@@ -118,11 +121,11 @@ public class RetailStoreController {
         @PostMapping("/login")
         public ResponseEntity<RetailStore> login(@RequestBody RetailStore loginRequest) {
             try {
-                // Use storeEmail as username for login (Mr. Naidoo's requirement)
+
                 Optional<RetailStore> optionalStore = service.findByStoreEmail(loginRequest.getStoreEmail());
                 if (optionalStore.isPresent()) {
                     RetailStore foundStore = optionalStore.get();
-                    // Verify password
+
                     if (passwordEncoder.matches(loginRequest.getPasswordHash(), foundStore.getPasswordHash())) {
                         return ResponseEntity.ok(foundStore);
                     }

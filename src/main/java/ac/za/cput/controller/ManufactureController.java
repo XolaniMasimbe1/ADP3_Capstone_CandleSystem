@@ -1,6 +1,7 @@
 package ac.za.cput.controller;
 
 import ac.za.cput.domain.Manufacture;
+import ac.za.cput.factory.ManufactureFactory;
 import ac.za.cput.service.ManufactureService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +25,14 @@ public class ManufactureController {
 
     @PostMapping("/create")
     public Manufacture create(@RequestBody Manufacture manufacture) {
-        return manufactureService.create(manufacture);
+        // Use ManufactureFactory to ensure proper validation
+        Manufacture newManufacture = ManufactureFactory.createManufacture(manufacture.getManufacturerName());
+        
+        if (newManufacture == null) {
+            throw new RuntimeException("Failed to create manufacturer - invalid data provided");
+        }
+        
+        return manufactureService.create(newManufacture);
     }
 
     @GetMapping("/read/{manufacturerNumber}")
