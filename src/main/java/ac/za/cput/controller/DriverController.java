@@ -5,6 +5,7 @@ import ac.za.cput.service.DriverService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -26,21 +27,25 @@ public class DriverController {
     }
 
     @PostMapping("/create")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('DRIVER')")
     public Driver create(@RequestBody Driver driver) {
         return service.create(driver);
     }
 
     @GetMapping("/read/{driverId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('DRIVER')")
     public Driver read(@PathVariable String driverId) {
         return service.read(driverId);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('DRIVER')")
     public Driver update(@RequestBody Driver driver) {
         return service.update(driver);
     }
 
     @DeleteMapping("/delete/{driverId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> delete(@PathVariable String driverId) {
         boolean deleted = service.delete(driverId);
         if (deleted) {
