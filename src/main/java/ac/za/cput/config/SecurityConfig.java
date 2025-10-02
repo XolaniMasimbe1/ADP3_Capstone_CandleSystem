@@ -60,6 +60,7 @@ public class SecurityConfig {
                 // Test endpoints (public)
                 .requestMatchers("/test/**").permitAll()
                 
+                
                 // Admin only endpoints
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 
