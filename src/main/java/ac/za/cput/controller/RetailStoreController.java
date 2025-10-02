@@ -74,22 +74,18 @@ public class RetailStoreController {
                     return ResponseEntity.badRequest().build();
                 }
 
-                // Hash the password before creating the store
+                // Password will be hashed in RetailStoreFactory, so pass the raw password
                 System.out.println("Registration - Original password: " + retailStore.getPasswordHash());
                 System.out.println("Registration - Password length: " + retailStore.getPasswordHash().length());
-                System.out.println("Registration - Password bytes: " + java.util.Arrays.toString(retailStore.getPasswordHash().getBytes()));
-                String encodedPassword = passwordEncoder.encode(retailStore.getPasswordHash());
-                System.out.println("Registration - Encoded password: " + encodedPassword);
                 
-                // Test if the encoding works correctly
-                boolean testMatch = passwordEncoder.matches(retailStore.getPasswordHash(), encodedPassword);
-                System.out.println("Registration - Test match: " + testMatch);
+                // Pass the raw password to the factory (it will handle hashing)
+                String rawPassword = retailStore.getPasswordHash();
                 
                 // Create RetailStore with Contact relationship
                 RetailStore newRetailStore = RetailStoreFactory.createRetailStore(
                         retailStore.getStoreName(),
                         retailStore.getStoreEmail(),
-                        encodedPassword, // Now using encoded password
+                        rawPassword, // Pass raw password - factory will hash it
                         retailStore.getAddress().getStreetNumber(),
                         retailStore.getAddress().getStreetName(),
                         retailStore.getAddress().getSuburb(),
@@ -148,60 +144,14 @@ public class RetailStoreController {
                     System.out.println("Login password: " + loginRequest.getPasswordHash());
 
                     boolean passwordMatches = passwordEncoder.matches(loginRequest.getPasswordHash(), foundStore.getPasswordHash());
-                    System.out.println("Password comparison result: " + passwordMatches);
-                    
-                    // Let's also test encoding the login password to see if it matches
-                    String testEncoded = passwordEncoder.encode(loginRequest.getPasswordHash());
-                    System.out.println("Test encoding login password: " + testEncoded);
-                    System.out.println("Stored password hash: " + foundStore.getPasswordHash());
-                    System.out.println("Are they equal? " + testEncoded.equals(foundStore.getPasswordHash()));
-                    
-                    // Let's try a different approach - test if the stored hash can be matched with itself
-                    boolean selfMatch = passwordEncoder.matches(loginRequest.getPasswordHash(), testEncoded);
-                    System.out.println("Self-match test (new encoding): " + selfMatch);
-                    
-                    // Let's also check if there are any hidden characters or encoding issues
-                    System.out.println("Login password length: " + loginRequest.getPasswordHash().length());
-                    System.out.println("Login password bytes: " + java.util.Arrays.toString(loginRequest.getPasswordHash().getBytes()));
-                    System.out.println("Stored hash length: " + foundStore.getPasswordHash().length());
-                    
-                    // Test if the stored hash is valid by trying to match it with a known password
-                    String testPassword = "password8888";
-                    boolean testStoredHash = passwordEncoder.matches(testPassword, foundStore.getPasswordHash());
-                    System.out.println("Test stored hash with known password: " + testStoredHash);
-                    
-                    // Test with the actual login password
-                    boolean testWithLoginPassword = passwordEncoder.matches(loginRequest.getPasswordHash(), foundStore.getPasswordHash());
-                    System.out.println("Test stored hash with login password: " + testWithLoginPassword);
-                    
-                    // Let's also check what was originally stored during registration
-                    System.out.println("Stored hash bytes: " + java.util.Arrays.toString(foundStore.getPasswordHash().getBytes()));
-                    
-                    // Check if the stored hash is a valid BCrypt hash
-                    boolean isValidBCrypt = foundStore.getPasswordHash().startsWith("$2a$") && foundStore.getPasswordHash().length() == 60;
-                    System.out.println("Is stored hash valid BCrypt format: " + isValidBCrypt);
                     
                     if (passwordMatches) {
                         System.out.println("Password matches - login successful");
                         return ResponseEntity.ok(foundStore);
                     } else {
-                        System.out.println("Password does not match");
-                        
-                        // TEMPORARY FIX: Force password reset for this account
-                        System.out.println("Password mismatch detected, resetting password to: " + loginRequest.getPasswordHash());
-                        String newHash = passwordEncoder.encode(loginRequest.getPasswordHash());
-                        foundStore.setPasswordHash(newHash);
-                        service.update(foundStore);
-                        System.out.println("Password hash updated to: " + newHash);
-                        
-                        // Try the comparison again
-                        boolean retryMatch = passwordEncoder.matches(loginRequest.getPasswordHash(), newHash);
-                        if (retryMatch) {
-                            System.out.println("Password matches after reset - login successful");
-                            return ResponseEntity.ok(foundStore);
-                        } else {
-                            System.out.println("Password still doesn't match after reset - this shouldn't happen!");
-                        }
+                        System.out.println("Password does not match - login failed");
+                        // SECURITY: Do NOT reset passwords automatically - this is a major security vulnerability
+                        // If password doesn't match, login should fail
                     }
                 } else {
                     System.out.println("Store not found for email: " + loginRequest.getStoreEmail());
