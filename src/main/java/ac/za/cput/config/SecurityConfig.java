@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableWebSecurity
@@ -45,6 +46,12 @@ public class SecurityConfig {
                 // Login endpoints (public - for mobile app authentication)
                 .requestMatchers("/store/login", "/admin/login", "/driver/login").permitAll()
                 
+                // Store management endpoints (public - for mobile app) - MUST come before other rules
+                .requestMatchers("/store/update", "/store/update/**", "/store/read/**", "/store/find/**", "/store/all", "/store/create").permitAll()
+                
+                // Explicitly allow PATCH method for store updates
+                .requestMatchers(HttpMethod.PATCH, "/store/update/**").permitAll()
+                
                 // Product endpoints (public - everyone can view products)
                 .requestMatchers("/product/**").permitAll()
                 
@@ -60,6 +67,8 @@ public class SecurityConfig {
                 // Test endpoints (public)
                 .requestMatchers("/test/**").permitAll()
                 
+                // Forgot password endpoints (public)
+                .requestMatchers("/forgot-password/**").permitAll()
                 
                 // Admin only endpoints
                 .requestMatchers("/admin/**").hasRole("ADMIN")
@@ -67,7 +76,7 @@ public class SecurityConfig {
                 // Driver only endpoints  
                 .requestMatchers("/driver/**").hasRole("DRIVER")
                 
-                // Retail store only endpoints
+                // Retail store only endpoints (MUST come after /store/** rules)
                 .requestMatchers("/retail/**").hasRole("RETAIL_STORE")
                 
                 // Any authenticated user
@@ -76,12 +85,8 @@ public class SecurityConfig {
                 // All other requests need authentication
                 .anyRequest().authenticated()
             )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .defaultSuccessUrl("/dashboard", true)
-                .failureUrl("/login?error=true")
-                .permitAll()
-            )
+            // Removed formLogin since we're using API-based authentication
+            // Authentication is handled through /admin/login, /driver/login, /store/login endpoints
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout=true")

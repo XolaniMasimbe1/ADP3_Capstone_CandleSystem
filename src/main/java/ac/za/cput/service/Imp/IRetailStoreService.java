@@ -14,5 +14,4 @@ import java.util.Optional;
 
 public interface IRetailStoreService extends IService<RetailStore, String> {
     List<RetailStore> getAll();
-    Optional<RetailStore> findByStoreNumber(String storeNumber);
 }

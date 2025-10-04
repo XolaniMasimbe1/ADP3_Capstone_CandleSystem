@@ -28,7 +28,7 @@ public class RetailStoreService implements IRetailStoreService {
     public RetailStore create(RetailStore retailStore) { return this.repository.save(retailStore); }
 
     @Override
-    public RetailStore read(String storeNumber) { return this.repository.findByStoreNumber(storeNumber).orElse(null); }
+    public RetailStore read(String storeId) { return this.repository.findById(storeId).orElse(null); }
 
     public RetailStore readById(String storeId) { return this.repository.findById(storeId).orElse(null); }
 
@@ -38,9 +38,8 @@ public class RetailStoreService implements IRetailStoreService {
     @Override
     public List<RetailStore> getAll() { return this.repository.findAll(); }
 
-    @Override
-    public Optional<RetailStore> findByStoreNumber(String storeNumber) {
-        return this.repository.findByStoreNumber(storeNumber);
+    public Optional<RetailStore> findByStoreId(String storeId) {
+        return this.repository.findById(storeId);
     }
 
 

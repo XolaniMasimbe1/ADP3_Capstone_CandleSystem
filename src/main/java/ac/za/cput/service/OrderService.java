@@ -48,8 +48,8 @@ public class OrderService implements IOrderService {
     public List<Order> getAll() { return this.repository.findAll(); }
 
     @Override
-    public List<Order> getOrdersByStoreNumber(String storeNumber) {
-        return repository.findByRetailStore_StoreNumber(storeNumber);
+    public List<Order> getOrdersByStoreId(String storeId) {
+        return repository.findByRetailStore_StoreId(storeId);
     }
 
     @Override

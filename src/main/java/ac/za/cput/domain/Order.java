@@ -91,7 +91,7 @@ public class Order {
                 "orderNumber='" + orderNumber + '\'' +
                 ", orderDate=" + orderDate +
                 ", orderStatus='" + orderStatus + '\'' +
-                ", retailStore=" + (retailStore != null ? retailStore.getStoreNumber() : null) +
+                ", retailStore=" + (retailStore != null ? retailStore.getStoreId() : null) +
                 ", orderItemsSize=" + (orderItems != null ? orderItems.size() : 0) +
                 '}';
     }

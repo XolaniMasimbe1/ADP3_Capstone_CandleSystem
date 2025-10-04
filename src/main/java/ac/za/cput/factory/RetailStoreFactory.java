@@ -27,7 +27,6 @@ public class RetailStoreFactory {
         }
 
         String storeId = Helper.generateId();
-        String storeNumber = Helper.generateId();
         String passwordHash = passwordEncoder.encode(password);
 
         // Create Store Address
@@ -61,7 +60,6 @@ public class RetailStoreFactory {
         RetailStore.Builder builder = new RetailStore.Builder();
         RetailStore retailStore = builder
                 .setStoreId(storeId)
-                .setStoreNumber(storeNumber)
                 .setStoreName(storeName)
                 .setStoreEmail(storeEmail)
                 .setPasswordHash(passwordHash)

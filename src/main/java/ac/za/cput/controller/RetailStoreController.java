@@ -37,28 +37,120 @@ public class RetailStoreController {
         return service.create(retailStore);
     }
 
-    @GetMapping("/read/{storeNumber}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('RETAIL_STORE')")
-    public RetailStore read(@PathVariable String storeNumber) {
-        return service.read(storeNumber);
+    @GetMapping("/read/{storeId}")
+    public RetailStore read(@PathVariable String storeId) {
+        return service.read(storeId);
     }
 
     @GetMapping("/read/id/{storeId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('RETAIL_STORE')")
     public RetailStore readById(@PathVariable String storeId) {
         return service.readById(storeId);
     }
 
 
     @PutMapping("/update")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('RETAIL_STORE')")
-    public RetailStore update(@RequestBody RetailStore retailStore) {
-        return service.update(retailStore);
+    public ResponseEntity<RetailStore> update(@RequestBody RetailStore retailStore) {
+        try {
+            // Check for unique constraint violations before updating
+            if (retailStore.getStoreEmail() != null) {
+                // You might want to add a check here to see if email already exists
+                // for a different store
+            }
+            
+            RetailStore updatedStore = service.update(retailStore);
+            return ResponseEntity.ok(updatedStore);
+        } catch (Exception e) {
+            System.err.println("Error in update: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Check for specific constraint violations
+            if (e.getMessage() != null && e.getMessage().contains("unique constraint")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            }
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
-    @GetMapping("/find/{storeNumber}")
-    public Optional<RetailStore> findByStoreNumber(@PathVariable String storeNumber) {
-        return service.findByStoreNumber(storeNumber);
+    @PatchMapping("/update/{storeId}")
+    @SuppressWarnings("unchecked")
+    public ResponseEntity<RetailStore> partialUpdate(@PathVariable String storeId, @RequestBody Map<String, Object> updates) {
+        try {
+            RetailStore existingStore = service.readById(storeId);
+            if (existingStore == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Update only the fields that are provided
+            if (updates.containsKey("storeName")) {
+                existingStore.setStoreName((String) updates.get("storeName"));
+            }
+            if (updates.containsKey("storeEmail")) {
+                String newEmail = (String) updates.get("storeEmail");
+                // Check if email is different to avoid unique constraint violation
+                if (!newEmail.equals(existingStore.getStoreEmail())) {
+                    existingStore.setStoreEmail(newEmail);
+                }
+            }
+            if (updates.containsKey("passwordHash")) {
+                existingStore.setPasswordHash((String) updates.get("passwordHash"));
+            }
+            
+            // Update address if provided
+            if (updates.containsKey("address")) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> addressData = (Map<String, Object>) updates.get("address");
+                if (existingStore.getAddress() != null) {
+                    if (addressData.containsKey("streetNumber")) {
+                        existingStore.getAddress().setStreetNumber((String) addressData.get("streetNumber"));
+                    }
+                    if (addressData.containsKey("streetName")) {
+                        existingStore.getAddress().setStreetName((String) addressData.get("streetName"));
+                    }
+                    if (addressData.containsKey("suburb")) {
+                        existingStore.getAddress().setSuburb((String) addressData.get("suburb"));
+                    }
+                    if (addressData.containsKey("city")) {
+                        existingStore.getAddress().setCity((String) addressData.get("city"));
+                    }
+                    if (addressData.containsKey("province")) {
+                        String provinceString = (String) addressData.get("province");
+                        try {
+                            Province province = Province.valueOf(provinceString);
+                            existingStore.getAddress().setProvince(province);
+                        } catch (IllegalArgumentException e) {
+                            // If the province string doesn't match any enum value, skip the update
+                            System.err.println("Invalid province value: " + provinceString);
+                        }
+                    }
+                    if (addressData.containsKey("postalCode")) {
+                        existingStore.getAddress().setPostalCode((String) addressData.get("postalCode"));
+                    }
+                    if (addressData.containsKey("country")) {
+                        existingStore.getAddress().setCountry((String) addressData.get("country"));
+                    }
+                }
+            }
+
+            RetailStore updatedStore = service.update(existingStore);
+            return ResponseEntity.ok(updatedStore);
+        } catch (Exception e) {
+            System.err.println("Error in partial update: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Check for specific constraint violations
+            if (e.getMessage() != null && e.getMessage().contains("unique constraint")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(null); // Return conflict status for unique constraint violations
+            }
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/find/{storeId}")
+    public Optional<RetailStore> findByStoreId(@PathVariable String storeId) {
+        return service.findByStoreId(storeId);
     }
 
     @GetMapping("/all")
@@ -115,7 +207,6 @@ public class RetailStoreController {
                 // Create a simplified response to avoid circular references
                 RetailStore responseStore = new RetailStore.Builder()
                         .setStoreId(savedStore.getStoreId())
-                        .setStoreNumber(savedStore.getStoreNumber())
                         .setStoreName(savedStore.getStoreName())
                         .setStoreEmail(savedStore.getStoreEmail())
                         .setAddress(savedStore.getAddress())
