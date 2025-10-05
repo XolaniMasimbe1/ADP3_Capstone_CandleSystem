@@ -46,6 +46,9 @@ public class SecurityConfig {
                 // Login endpoints (public - for mobile app authentication)
                 .requestMatchers("/store/login", "/admin/login", "/driver/login").permitAll()
                 
+                // Admin creation and read endpoints (public for testing and initial setup)
+                .requestMatchers("/admin/create", "/admin/read/**", "/admin/all", "/admin/update-password").permitAll()
+                
                 // Store management endpoints (public - for mobile app) - MUST come before other rules
                 .requestMatchers("/store/update", "/store/update/**", "/store/read/**", "/store/find/**", "/store/all", "/store/create").permitAll()
                 
@@ -70,8 +73,8 @@ public class SecurityConfig {
                 // Forgot password endpoints (public)
                 .requestMatchers("/forgot-password/**").permitAll()
                 
-                // Admin only endpoints
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+                // Admin management endpoints (require ADMIN role)
+                .requestMatchers("/admin/update", "/admin/delete/**").hasRole("ADMIN")
                 
                 // Driver only endpoints  
                 .requestMatchers("/driver/**").hasRole("DRIVER")

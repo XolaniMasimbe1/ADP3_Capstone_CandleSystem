@@ -28,13 +28,16 @@ public class AdminController {
     }
 
     @PostMapping("/create")
-    @PreAuthorize("hasRole('ADMIN')")
     public Admin create(@RequestBody Admin admin) {
+        // Hash the password before saving
+        if (admin.getPasswordHash() != null && !admin.getPasswordHash().isEmpty()) {
+            String hashedPassword = passwordEncoder.encode(admin.getPasswordHash());
+            admin.setPasswordHash(hashedPassword);
+        }
         return service.create(admin);
     }
 
     @GetMapping("/read/{adminId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public Admin read(@PathVariable String adminId) {
         return service.read(adminId);
     }
@@ -43,6 +46,30 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public Admin update(@RequestBody Admin admin) {
         return service.update(admin);
+    }
+
+    @PostMapping("/update-password")
+    public ResponseEntity<String> updatePassword(@RequestBody Admin admin) {
+        try {
+            // Find the admin by username or email
+            Optional<Admin> optionalAdmin = service.findByUsername(admin.getUsername());
+            if (!optionalAdmin.isPresent()) {
+                optionalAdmin = service.findByEmail(admin.getUsername());
+            }
+            
+            if (optionalAdmin.isPresent()) {
+                Admin existingAdmin = optionalAdmin.get();
+                // Hash the new password
+                String hashedPassword = passwordEncoder.encode(admin.getPasswordHash());
+                existingAdmin.setPasswordHash(hashedPassword);
+                service.update(existingAdmin);
+                return ResponseEntity.ok("Password updated successfully");
+            } else {
+                return ResponseEntity.badRequest().body("Admin not found");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating password");
+        }
     }
 
     @DeleteMapping("/delete/{adminId}")
@@ -66,7 +93,6 @@ public class AdminController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ADMIN')")
     public List<Admin> getAll() {
         return service.getAll();
     }
