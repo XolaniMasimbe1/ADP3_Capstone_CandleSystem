@@ -58,6 +58,9 @@ public class SecurityConfig {
                 // Product endpoints (public - everyone can view products)
                 .requestMatchers("/product/**").permitAll()
                 
+                // Manufacture endpoints (public - everyone can view manufacturers)
+                .requestMatchers("/manufacture/**").permitAll()
+                
                 // Delivery endpoints (public - for order creation)
                 .requestMatchers("/delivery/**").permitAll()
                 
@@ -73,8 +76,11 @@ public class SecurityConfig {
                 // Forgot password endpoints (public)
                 .requestMatchers("/forgot-password/**").permitAll()
                 
-                // Admin management endpoints (require ADMIN role)
-                .requestMatchers("/admin/update", "/admin/delete/**").hasRole("ADMIN")
+                // Admin management endpoints (public for now - will add authentication later)
+                .requestMatchers("/admin/update", "/admin/delete/**", "/admin/block/**", "/admin/unblock/**").permitAll()
+                
+                // Retail store management endpoints (public for now - will add authentication later)
+                .requestMatchers("/store/block/**", "/store/unblock/**").permitAll()
                 
                 // Driver only endpoints  
                 .requestMatchers("/driver/**").hasRole("DRIVER")

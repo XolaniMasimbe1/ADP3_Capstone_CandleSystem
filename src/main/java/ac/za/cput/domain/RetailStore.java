@@ -21,6 +21,9 @@ public class RetailStore {
     @Column(name = "password_hash")
     private String passwordHash;
     
+    @Column(name = "is_active")
+    private Boolean isActive = true; // Account status: true = active, false = blocked
+    
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "address_id", referencedColumnName = "addressId")
     private Address address;
@@ -40,6 +43,7 @@ public class RetailStore {
         this.storeName = builder.storeName;
         this.storeEmail = builder.storeEmail;
         this.passwordHash = builder.passwordHash;
+        this.isActive = builder.isActive;
         this.address = builder.address;
         this.contactPersons = builder.contactPersons != null ? builder.contactPersons : new ArrayList<>();
     }
@@ -49,6 +53,7 @@ public class RetailStore {
     public String getStoreName() { return storeName; }
     public String getStoreEmail() { return storeEmail; }
     public String getPasswordHash() { return passwordHash; }
+    public boolean isActive() { return isActive != null ? isActive : true; }
     public Address getAddress() { return address; }
     public List<ContactPerson> getContactPersons() { return contactPersons; }
     
@@ -85,6 +90,10 @@ public class RetailStore {
         this.passwordHash = passwordHash;
     }
 
+    public void setActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
     public void setAddress(Address address) {
         this.address = address;
     }
@@ -109,6 +118,7 @@ public class RetailStore {
         private String storeName;
         private String storeEmail;
         private String passwordHash;
+        private Boolean isActive = true;
         private Address address;
         private List<ContactPerson> contactPersons = new ArrayList<>();
 
@@ -129,6 +139,11 @@ public class RetailStore {
 
         public Builder setPasswordHash(String passwordHash) {
             this.passwordHash = passwordHash;
+            return this;
+        }
+
+        public Builder setActive(Boolean isActive) {
+            this.isActive = isActive;
             return this;
         }
 
@@ -154,6 +169,7 @@ public class RetailStore {
             this.storeName = retailStore.storeName;
             this.storeEmail = retailStore.storeEmail;
             this.passwordHash = retailStore.passwordHash;
+            this.isActive = retailStore.isActive;
             this.address = retailStore.address;
             this.contactPersons = retailStore.contactPersons != null ? new ArrayList<>(retailStore.contactPersons) : new ArrayList<>();
             return this;

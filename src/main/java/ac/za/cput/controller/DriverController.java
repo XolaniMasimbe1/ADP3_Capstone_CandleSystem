@@ -10,7 +10,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @CrossOrigin(origins = "*")
@@ -103,20 +105,48 @@ public class DriverController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Driver> login(@RequestBody Driver loginRequest) {
+    public ResponseEntity<?> login(@RequestBody Driver loginRequest) {
         try {
+            System.out.println("Login attempt for driver: " + loginRequest.getUsername());
+            
             // Find driver by username
             Optional<Driver> optionalDriver = service.findByUsername(loginRequest.getUsername());
             if (optionalDriver.isPresent()) {
                 Driver foundDriver = optionalDriver.get();
+                System.out.println("Found driver: " + foundDriver.getUsername());
+                
                 // Verify password
-                if (passwordEncoder.matches(loginRequest.getPasswordHash(), foundDriver.getPasswordHash())) {
+                boolean passwordMatches = passwordEncoder.matches(loginRequest.getPasswordHash(), foundDriver.getPasswordHash());
+                System.out.println("Password matches: " + passwordMatches);
+                
+                if (passwordMatches) {
+                    // Check if driver account is active
+                    if (!foundDriver.isActive()) {
+                        System.out.println("Driver account is blocked: " + foundDriver.getUsername());
+                        Map<String, String> errorResponse = new HashMap<>();
+                        errorResponse.put("error", "Account is blocked. Please contact administrator.");
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+                    }
+                    System.out.println("Login successful for: " + foundDriver.getUsername());
                     return ResponseEntity.ok(foundDriver);
+                } else {
+                    System.out.println("Password verification failed for: " + foundDriver.getUsername());
                 }
+            } else {
+                System.out.println("No driver found with username: " + loginRequest.getUsername());
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Driver not found. Please check your username.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
-            return ResponseEntity.badRequest().build();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Invalid credentials");
+            return ResponseEntity.badRequest().body(errorResponse);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            System.err.println("Login error: " + e.getMessage());
+            e.printStackTrace();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Login failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 }

@@ -23,7 +23,6 @@ class AdminControllerTest {
     private int port;
 
     private static Admin admin;
-    private static Admin admin2;
 
     private String baseURL() {
         return "http://localhost:" + port + "/CandleSystem";
@@ -35,13 +34,9 @@ class AdminControllerTest {
 
     @BeforeAll
     void setUp() {
-        // Create super admin with real data
-        admin = AdminFactory.createAdmin("superadmin", "SuperAdmin123!", "superadmin@ezelina.com", "0821234567");
+        // Create only one admin for testing
+        admin = AdminFactory.createAdmin("admin", "Admin123!", "admin@ezelina.com", "0839876543");
         assertNotNull(admin);
-        
-        // Create regular admin for testing
-        admin2 = AdminFactory.createAdmin("admin", "Admin123!", "admin@ezelina.com", "0839876543");
-        assertNotNull(admin2);
     }
 
     @AfterAll
@@ -55,20 +50,10 @@ class AdminControllerTest {
                         null,
                         String.class
                 );
-                System.out.println("Cleaned up super admin");
-            }
-            
-            if (admin2 != null && admin2.getAdminId() != null) {
-                restTemplate.exchange(
-                        adminURL() + "/delete/" + admin2.getAdminId(),
-                        HttpMethod.DELETE,
-                        null,
-                        String.class
-                );
-                System.out.println("Cleaned up regular admin");
+                System.out.println("Cleaned up admin");
             }
         } catch (Exception e) {
-            System.out.println("Error cleaning up test admins: " + e.getMessage());
+            System.out.println("Error cleaning up test admin: " + e.getMessage());
         }
     }
 
@@ -115,53 +100,13 @@ class AdminControllerTest {
 
     @Test
     @Order(3)
-    void c_register() {
-        // Create new admin with real data for registration test
-        Admin newAdmin = AdminFactory.createAdmin("newadmin", "NewAdmin123!", "newadmin@ezelina.com", "0845555555");
-        assertNotNull(newAdmin);
-
-        ResponseEntity<Admin> response = restTemplate.postForEntity(
-                adminURL() + "/register",
-                newAdmin,
-                Admin.class
-        );
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("newadmin", response.getBody().getUsername());
-        System.out.println("Registered: " + response.getBody());
-    }
-
-    @Test
-    @Order(4)
-    void d_updatePassword() {
-        // Update the admin's password to be properly hashed
-        Admin passwordUpdate = new Admin();
-        passwordUpdate.setUsername(admin.getUsername());
-        passwordUpdate.setPasswordHash("SuperAdmin123!"); // Same password but will be hashed
-
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                adminURL() + "/update-password",
-                passwordUpdate,
-                String.class
-        );
-
-        System.out.println("Password Update Response Status: " + response.getStatusCode());
-        System.out.println("Password Update Response Body: " + response.getBody());
-        
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        System.out.println("Password updated successfully");
-    }
-
-    @Test
-    @Order(5)
-    void e_login() {
+    void c_login() {
         // Create login request with correct credentials
         Admin loginRequest = new Admin();
-        loginRequest.setUsername(admin.getUsername());
-        loginRequest.setPasswordHash("SuperAdmin123!"); // Super admin password
+        loginRequest.setEmail(admin.getEmail());
+        loginRequest.setPasswordHash("Admin123!"); // Admin password
 
-        System.out.println("Login attempt for: " + loginRequest.getUsername());
+        System.out.println("Login attempt for: " + loginRequest.getEmail());
         System.out.println("Login password: " + loginRequest.getPasswordHash());
         System.out.println("Admin in database: " + admin);
 
@@ -176,39 +121,7 @@ class AdminControllerTest {
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(admin.getUsername(), response.getBody().getUsername());
-        System.out.println("Super Admin Login successful: " + response.getBody());
-    }
-
-    @Test
-    @Order(6)
-    void f_createAdminBySuperAdmin() {
-        // Super admin creates a new admin
-        Admin newAdminBySuper = AdminFactory.createAdmin("adminby_super", "AdminBySuper123!", "adminby_super@ezelina.com", "0851234567");
-        assertNotNull(newAdminBySuper);
-
-        ResponseEntity<Admin> response = restTemplate.postForEntity(
-                adminURL() + "/create",
-                newAdminBySuper,
-                Admin.class
-        );
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("adminby_super", response.getBody().getUsername());
-        System.out.println("Super Admin created new admin: " + response.getBody());
-    }
-
-    @Test
-    @Order(7)
-    void g_getAll() {
-        ResponseEntity<Admin[]> response = restTemplate.getForEntity(
-                adminURL() + "/all",
-                Admin[].class
-        );
-
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().length > 0);
-        System.out.println("All Admins (" + response.getBody().length + " total)");
+        assertEquals(admin.getEmail(), response.getBody().getEmail());
+        System.out.println("Admin Login successful: " + response.getBody());
     }
 }

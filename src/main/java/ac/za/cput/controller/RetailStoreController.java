@@ -237,6 +237,13 @@ public class RetailStoreController {
                     boolean passwordMatches = passwordEncoder.matches(loginRequest.getPasswordHash(), foundStore.getPasswordHash());
                     
                     if (passwordMatches) {
+                        // Check if retail store account is active
+                        if (!foundStore.isActive()) {
+                            System.out.println("Retail store account is blocked: " + foundStore.getStoreEmail());
+                            Map<String, String> errorResponse = new HashMap<>();
+                            errorResponse.put("error", "Account is blocked. Please contact administrator.");
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+                        }
                         System.out.println("Password matches - login successful");
                         return ResponseEntity.ok(foundStore);
                     } else {
@@ -246,6 +253,10 @@ public class RetailStoreController {
                     }
                 } else {
                     System.out.println("Store not found for email: " + loginRequest.getStoreEmail());
+
+                    Map<String, String> errorResponse = new HashMap<>();
+                    errorResponse.put("error", "Store not found. Please check your email address.");
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
                 }
                 Map<String, String> errorResponse = new HashMap<>();
                 errorResponse.put("error", "Invalid credentials");
@@ -342,6 +353,42 @@ public class RetailStoreController {
                 }
                 return ResponseEntity.notFound().build();
             } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+
+        // Block retail store account
+        @PostMapping("/block/{storeId}")
+        public ResponseEntity<?> blockRetailStore(@PathVariable String storeId) {
+            try {
+                RetailStore store = service.read(storeId);
+                if (store != null) {
+                    store.setActive(false);
+                    RetailStore updatedStore = service.update(store);
+                    return ResponseEntity.ok(updatedStore);
+                } else {
+                    return ResponseEntity.notFound().build();
+                }
+            } catch (Exception e) {
+                System.err.println("Error blocking retail store: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+
+        // Unblock retail store account
+        @PostMapping("/unblock/{storeId}")
+        public ResponseEntity<?> unblockRetailStore(@PathVariable String storeId) {
+            try {
+                RetailStore store = service.read(storeId);
+                if (store != null) {
+                    store.setActive(true);
+                    RetailStore updatedStore = service.update(store);
+                    return ResponseEntity.ok(updatedStore);
+                } else {
+                    return ResponseEntity.notFound().build();
+                }
+            } catch (Exception e) {
+                System.err.println("Error unblocking retail store: " + e.getMessage());
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
         }

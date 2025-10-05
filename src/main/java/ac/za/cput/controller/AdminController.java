@@ -11,7 +11,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @CrossOrigin(origins = "*")
@@ -155,42 +157,82 @@ public class AdminController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Admin> login(@RequestBody Admin loginRequest) {
+    public ResponseEntity<?> login(@RequestBody Admin loginRequest) {
         try {
-            System.out.println("Login attempt for username/email: " + loginRequest.getUsername());
+            System.out.println("Login attempt for email: " + loginRequest.getEmail());
             
-            // Try to find admin by username first
-            Optional<Admin> optionalAdmin = service.findByUsername(loginRequest.getUsername());
-            
-            // If not found by username, try by email
-            if (!optionalAdmin.isPresent()) {
-                System.out.println("No admin found with username, trying email: " + loginRequest.getUsername());
-                optionalAdmin = service.findByEmail(loginRequest.getUsername());
-            }
+            // Find admin by email only
+            Optional<Admin> optionalAdmin = service.findByEmail(loginRequest.getEmail());
             
             if (optionalAdmin.isPresent()) {
                 Admin foundAdmin = optionalAdmin.get();
-                System.out.println("Found admin: " + foundAdmin.getUsername() + " (email: " + foundAdmin.getEmail() + ")");
-                System.out.println("Stored password hash: " + foundAdmin.getPasswordHash());
-                System.out.println("Provided password: " + loginRequest.getPasswordHash());
+                System.out.println("Found admin: " + foundAdmin.getEmail());
                 
                 // Verify password
                 boolean passwordMatches = passwordEncoder.matches(loginRequest.getPasswordHash(), foundAdmin.getPasswordHash());
                 System.out.println("Password matches: " + passwordMatches);
                 
                 if (passwordMatches) {
-                    System.out.println("Login successful for: " + foundAdmin.getUsername());
+                    // Check if admin account is active
+                    if (!foundAdmin.isActive()) {
+                        System.out.println("Admin account is blocked: " + foundAdmin.getEmail());
+                        Map<String, String> errorResponse = new HashMap<>();
+                        errorResponse.put("error", "Account is blocked. Please contact administrator.");
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+                    }
+                    System.out.println("Login successful for: " + foundAdmin.getEmail());
                     return ResponseEntity.ok(foundAdmin);
                 } else {
-                    System.out.println("Password verification failed for: " + foundAdmin.getUsername());
+                    System.out.println("Password verification failed for: " + foundAdmin.getEmail());
                 }
             } else {
-                System.out.println("No admin found with username or email: " + loginRequest.getUsername());
+                System.out.println("No admin found with email: " + loginRequest.getEmail());
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Admin not found. Please check your email address.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
-            return ResponseEntity.badRequest().build();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Invalid credentials");
+            return ResponseEntity.badRequest().body(errorResponse);
         } catch (Exception e) {
             System.err.println("Login error: " + e.getMessage());
             e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Block admin account
+    @PostMapping("/block/{adminId}")
+    public ResponseEntity<?> blockAdmin(@PathVariable String adminId) {
+        try {
+            Admin admin = service.read(adminId);
+            if (admin != null) {
+                admin.setActive(false);
+                Admin updatedAdmin = service.update(admin);
+                return ResponseEntity.ok(updatedAdmin);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            System.err.println("Error blocking admin: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Unblock admin account
+    @PostMapping("/unblock/{adminId}")
+    public ResponseEntity<?> unblockAdmin(@PathVariable String adminId) {
+        try {
+            Admin admin = service.read(adminId);
+            if (admin != null) {
+                admin.setActive(true);
+                Admin updatedAdmin = service.update(admin);
+                return ResponseEntity.ok(updatedAdmin);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            System.err.println("Error unblocking admin: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
