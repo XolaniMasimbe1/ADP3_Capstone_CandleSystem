@@ -100,6 +100,10 @@ public class Order {
         this.orderStatus = orderStatus;
     }
 
+    public void setOrderDate(LocalDate orderDate) {
+        this.orderDate = orderDate;
+    }
+
     public static class Builder {
         private String orderNumber;
         private LocalDate orderDate;
