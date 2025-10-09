@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -20,6 +21,12 @@ public class SecurityConfig {
 
     @Autowired
     private CustomUserDetailsService userDetailsService;
+    
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    
+    @Autowired
+    private UserStatusFilter userStatusFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -39,6 +46,12 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
                 
+                // JWT Authentication endpoints (public)
+                .requestMatchers("/auth/**").permitAll()
+                
+                // Forgot password endpoints (public)
+                .requestMatchers("/forgot-password/**").permitAll()
+                
                 // Registration endpoints (public)
                 .requestMatchers("/store/register", "/admin/register", "/driver/register").permitAll()
                 
@@ -47,6 +60,12 @@ public class SecurityConfig {
                 
                 // Product endpoints (public - everyone can view products)
                 .requestMatchers("/product/**").permitAll()
+                
+                // Manufacture endpoints (public - for admin dashboard)
+                .requestMatchers("/manufacture/**").permitAll()
+                
+                // Store endpoints (public - for admin dashboard)
+                .requestMatchers("/store/**").permitAll()
                 
                 // Delivery endpoints (public - for order creation)
                 .requestMatchers("/delivery/**").permitAll()
@@ -61,7 +80,7 @@ public class SecurityConfig {
                 .requestMatchers("/test/**").permitAll()
                 
                 
-                // Admin only endpoints
+                // Admin only endpoints (require JWT authentication)
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 
                 // Driver only endpoints  
@@ -89,7 +108,9 @@ public class SecurityConfig {
                 .deleteCookies("JSESSIONID")
                 .permitAll()
             )
-            .csrf(csrf -> csrf.disable()); // Disable CSRF for API endpoints
+                .csrf(csrf -> csrf.disable()) // Disable CSRF for API endpoints
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter
+                .addFilterAfter(userStatusFilter, JwtAuthenticationFilter.class); // Add user status filter after JWT
 
         return http.build();
     }

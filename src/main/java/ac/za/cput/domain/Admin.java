@@ -5,7 +5,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "admin")
-public class Admin {
+public class Admin implements User {
     @Id
     private String adminId;
     
@@ -15,6 +15,7 @@ public class Admin {
     private String passwordHash;
     private String email;
     private String phoneNumber;
+    private Boolean isActive = true; // Account status: true = active, false = blocked
     
 
     // A public no-argument constructor is needed for Jackson deserialization
@@ -26,6 +27,7 @@ public class Admin {
         this.passwordHash = builder.passwordHash;
         this.email = builder.email;
         this.phoneNumber = builder.phoneNumber;
+        this.isActive = builder.isActive;
     }
 
     // Getters
@@ -34,6 +36,17 @@ public class Admin {
     public String getPasswordHash() { return passwordHash; }
     public String getEmail() { return email; }
     public String getPhoneNumber() { return phoneNumber; }
+    public boolean isActive() { return isActive != null ? isActive : true; }
+
+    // User interface implementation
+    @Override
+    public String getId() { return adminId; }
+    
+    @Override
+    public String getRole() { return "ADMIN"; }
+    
+    @Override
+    public String getName() { return username; }
 
     // Public setters are required by Jackson for deserialization
     public void setAdminId(String adminId) { this.adminId = adminId; }
@@ -41,6 +54,7 @@ public class Admin {
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public void setEmail(String email) { this.email = email; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public void setActive(Boolean isActive) { this.isActive = isActive; }
 
     @Override
     public boolean equals(Object o) {
@@ -71,6 +85,7 @@ public class Admin {
         private String passwordHash;
         private String email;
         private String phoneNumber;
+        private Boolean isActive = true;
 
         public Builder setAdminId(String adminId) {
             this.adminId = adminId;
@@ -97,12 +112,18 @@ public class Admin {
             return this;
         }
 
+        public Builder setActive(Boolean isActive) {
+            this.isActive = isActive;
+            return this;
+        }
+
         public Builder copy(Admin admin) {
             this.adminId = admin.adminId;
             this.username = admin.username;
             this.passwordHash = admin.passwordHash;
             this.email = admin.email;
             this.phoneNumber = admin.phoneNumber;
+            this.isActive = admin.isActive;
             return this;
         }
 

@@ -84,7 +84,6 @@ class OrderControllerTest {
                     "+27987654321"
             ));
             assertNotNull(retailStore, "RetailStore creation failed");
-            assertNotNull(retailStore.getStoreNumber(), "RetailStore ID is null");
             assertNotNull(retailStore.getStoreId(), "Store ID is null");
 
             // 3. Create manufacture

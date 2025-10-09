@@ -45,8 +45,21 @@ public class OrderController {
         return service.getAll();
     }
 
-    @GetMapping("/store/{storeNumber}")
-    public List<Order> getOrdersByStoreNumber(@PathVariable String storeNumber) {
-        return service.getOrdersByStoreNumber(storeNumber);
+    @GetMapping("/store/{storeId}")
+    public List<Order> getOrdersByStoreId(@PathVariable String storeId) {
+        return service.getOrdersByStoreId(storeId);
+    }
+
+    @GetMapping("/with-images/{orderNumber}")
+    public Order getOrderWithImages(@PathVariable String orderNumber) {
+        return service.read(orderNumber);
+    }
+
+    @GetMapping("/test/{storeId}")
+    public String testEndpoint(@PathVariable String storeId) {
+        System.out.println("Test endpoint called with storeId: " + storeId);
+        List<Order> orders = service.getOrdersByStoreId(storeId);
+        System.out.println("Found " + orders.size() + " orders for storeId: " + storeId);
+        return "Test successful - Found " + orders.size() + " orders for store: " + storeId;
     }
 }

@@ -8,12 +8,9 @@ import java.util.List;
 
 @Entity
 @Table(name = "retail_store")
-public class RetailStore {
+public class RetailStore implements User {
     @Id
     private String storeId;
-    
-    @Column(name = "store_number", unique = true)
-    private String storeNumber;
     
     @Column(name = "store_name")
     private String storeName;
@@ -24,6 +21,9 @@ public class RetailStore {
     @Column(name = "password_hash")
     private String passwordHash;
     
+    @Column(name = "is_active")
+    private Boolean isActive = true; // Account status: true = active, false = blocked
+    
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "address_id", referencedColumnName = "addressId")
     private Address address;
@@ -33,28 +33,42 @@ public class RetailStore {
     @JsonManagedReference("retailStore")
     private List<ContactPerson> contactPersons = new ArrayList<>();
     
-
+     @OneToOne(mappedBy = "retailStore")
+    private ForgotPassword forgotPassword;
     // A public no-argument constructor is needed for Jackson deserialization
     public RetailStore() {}
 
     protected RetailStore(Builder builder) {
         this.storeId = builder.storeId;
-        this.storeNumber = builder.storeNumber;
         this.storeName = builder.storeName;
         this.storeEmail = builder.storeEmail;
         this.passwordHash = builder.passwordHash;
+        this.isActive = builder.isActive;
         this.address = builder.address;
         this.contactPersons = builder.contactPersons != null ? builder.contactPersons : new ArrayList<>();
     }
 
     // Getters
     public String getStoreId() { return storeId; }
-    public String getStoreNumber() { return storeNumber; }
     public String getStoreName() { return storeName; }
     public String getStoreEmail() { return storeEmail; }
     public String getPasswordHash() { return passwordHash; }
+    public boolean isActive() { return isActive != null ? isActive : true; }
     public Address getAddress() { return address; }
     public List<ContactPerson> getContactPersons() { return contactPersons; }
+
+    // User interface implementation
+    @Override
+    public String getId() { return storeId; }
+    
+    @Override
+    public String getEmail() { return storeEmail; }
+    
+    @Override
+    public String getRole() { return "RETAIL_STORE"; }
+    
+    @Override
+    public String getName() { return storeName; }
     
     // Helper methods for contact management
     public ContactPerson getFirstContactPerson() {
@@ -76,9 +90,6 @@ public class RetailStore {
         this.storeId = storeId;
     }
 
-    public void setStoreNumber(String storeNumber) {
-        this.storeNumber = storeNumber;
-    }
 
     public void setStoreName(String storeName) {
         this.storeName = storeName;
@@ -90,6 +101,10 @@ public class RetailStore {
 
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public void setActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 
     public void setAddress(Address address) {
@@ -104,7 +119,6 @@ public class RetailStore {
     public String toString() {
         return "RetailStore{" +
                 "storeId='" + storeId + '\'' +
-                ", storeNumber='" + storeNumber + '\'' +
                 ", storeName='" + storeName + '\'' +
                 ", storeEmail='" + storeEmail + '\'' +
                 ", address=" + address +
@@ -114,20 +128,15 @@ public class RetailStore {
 
     public static class Builder {
         private String storeId;
-        private String storeNumber;
         private String storeName;
         private String storeEmail;
         private String passwordHash;
+        private Boolean isActive = true;
         private Address address;
         private List<ContactPerson> contactPersons = new ArrayList<>();
 
         public Builder setStoreId(String storeId) {
             this.storeId = storeId;
-            return this;
-        }
-
-        public Builder setStoreNumber(String storeNumber) {
-            this.storeNumber = storeNumber;
             return this;
         }
 
@@ -143,6 +152,11 @@ public class RetailStore {
 
         public Builder setPasswordHash(String passwordHash) {
             this.passwordHash = passwordHash;
+            return this;
+        }
+
+        public Builder setActive(Boolean isActive) {
+            this.isActive = isActive;
             return this;
         }
 
@@ -165,10 +179,10 @@ public class RetailStore {
 
         public Builder copy(RetailStore retailStore) {
             this.storeId = retailStore.storeId;
-            this.storeNumber = retailStore.storeNumber;
             this.storeName = retailStore.storeName;
             this.storeEmail = retailStore.storeEmail;
             this.passwordHash = retailStore.passwordHash;
+            this.isActive = retailStore.isActive;
             this.address = retailStore.address;
             this.contactPersons = retailStore.contactPersons != null ? new ArrayList<>(retailStore.contactPersons) : new ArrayList<>();
             return this;

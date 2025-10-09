@@ -48,16 +48,16 @@ class RetailStoreServiceTest {
 
     @Test
     void read() {
-        RetailStore readStore = retailStoreService.read(retailStore.getStoreNumber());
+        RetailStore readStore = retailStoreService.read(retailStore.getStoreId());
         assertNotNull(readStore);
         System.out.println("Read: " + readStore);
     }
 
     @Test
     void update() {
-        String storeNumber = "8a1c07ef-41f8-4ceb-a420-935e743d812c";
+        String storeId = "8a1c07ef-41f8-4ceb-a420-935e743d812c";
         RetailStore updatedStore = new RetailStore.Builder()
-                .setStoreNumber(storeNumber)
+                .setStoreId(storeId)
                 .setStoreName("Updated Store")
                 .build();
         RetailStore result = retailStoreService.update(updatedStore);

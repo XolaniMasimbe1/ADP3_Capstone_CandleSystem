@@ -10,7 +10,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @CrossOrigin(origins = "*")
@@ -102,21 +104,4 @@ public class DriverController {
         }
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<Driver> login(@RequestBody Driver loginRequest) {
-        try {
-            // Find driver by username
-            Optional<Driver> optionalDriver = service.findByUsername(loginRequest.getUsername());
-            if (optionalDriver.isPresent()) {
-                Driver foundDriver = optionalDriver.get();
-                // Verify password
-                if (passwordEncoder.matches(loginRequest.getPasswordHash(), foundDriver.getPasswordHash())) {
-                    return ResponseEntity.ok(foundDriver);
-                }
-            }
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
 }
