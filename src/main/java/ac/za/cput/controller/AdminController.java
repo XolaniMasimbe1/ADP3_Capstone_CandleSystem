@@ -6,11 +6,14 @@ import ac.za.cput.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @CrossOrigin(origins = "*")
@@ -28,6 +31,11 @@ public class AdminController {
 
     @PostMapping("/create")
     public Admin create(@RequestBody Admin admin) {
+        // Hash the password before saving
+        if (admin.getPasswordHash() != null && !admin.getPasswordHash().isEmpty()) {
+            String hashedPassword = passwordEncoder.encode(admin.getPasswordHash());
+            admin.setPasswordHash(hashedPassword);
+        }
         return service.create(admin);
     }
 
@@ -37,11 +45,37 @@ public class AdminController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasRole('ADMIN')")
     public Admin update(@RequestBody Admin admin) {
         return service.update(admin);
     }
 
+    @PostMapping("/update-password")
+    public ResponseEntity<String> updatePassword(@RequestBody Admin admin) {
+        try {
+            // Find the admin by username or email
+            Optional<Admin> optionalAdmin = service.findByUsername(admin.getUsername());
+            if (!optionalAdmin.isPresent()) {
+                optionalAdmin = service.findByEmail(admin.getUsername());
+            }
+            
+            if (optionalAdmin.isPresent()) {
+                Admin existingAdmin = optionalAdmin.get();
+                // Hash the new password
+                String hashedPassword = passwordEncoder.encode(admin.getPasswordHash());
+                existingAdmin.setPasswordHash(hashedPassword);
+                service.update(existingAdmin);
+                return ResponseEntity.ok("Password updated successfully");
+            } else {
+                return ResponseEntity.badRequest().body("Admin not found");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating password");
+        }
+    }
+
     @DeleteMapping("/delete/{adminId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> delete(@PathVariable String adminId) {
         boolean deleted = service.delete(adminId);
         if (deleted) {
@@ -122,43 +156,39 @@ public class AdminController {
         }
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<Admin> login(@RequestBody Admin loginRequest) {
+
+    // Block admin account
+    @PostMapping("/block/{adminId}")
+    public ResponseEntity<?> blockAdmin(@PathVariable String adminId) {
         try {
-            System.out.println("Login attempt for username/email: " + loginRequest.getUsername());
-            
-            // Try to find admin by username first
-            Optional<Admin> optionalAdmin = service.findByUsername(loginRequest.getUsername());
-            
-            // If not found by username, try by email
-            if (!optionalAdmin.isPresent()) {
-                System.out.println("No admin found with username, trying email: " + loginRequest.getUsername());
-                optionalAdmin = service.findByEmail(loginRequest.getUsername());
-            }
-            
-            if (optionalAdmin.isPresent()) {
-                Admin foundAdmin = optionalAdmin.get();
-                System.out.println("Found admin: " + foundAdmin.getUsername() + " (email: " + foundAdmin.getEmail() + ")");
-                System.out.println("Stored password hash: " + foundAdmin.getPasswordHash());
-                System.out.println("Provided password: " + loginRequest.getPasswordHash());
-                
-                // Verify password
-                boolean passwordMatches = passwordEncoder.matches(loginRequest.getPasswordHash(), foundAdmin.getPasswordHash());
-                System.out.println("Password matches: " + passwordMatches);
-                
-                if (passwordMatches) {
-                    System.out.println("Login successful for: " + foundAdmin.getUsername());
-                    return ResponseEntity.ok(foundAdmin);
-                } else {
-                    System.out.println("Password verification failed for: " + foundAdmin.getUsername());
-                }
+            Admin admin = service.read(adminId);
+            if (admin != null) {
+                admin.setActive(false);
+                Admin updatedAdmin = service.update(admin);
+                return ResponseEntity.ok(updatedAdmin);
             } else {
-                System.out.println("No admin found with username or email: " + loginRequest.getUsername());
+                return ResponseEntity.notFound().build();
             }
-            return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            System.err.println("Login error: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Error blocking admin: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Unblock admin account
+    @PostMapping("/unblock/{adminId}")
+    public ResponseEntity<?> unblockAdmin(@PathVariable String adminId) {
+        try {
+            Admin admin = service.read(adminId);
+            if (admin != null) {
+                admin.setActive(true);
+                Admin updatedAdmin = service.update(admin);
+                return ResponseEntity.ok(updatedAdmin);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            System.err.println("Error unblocking admin: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

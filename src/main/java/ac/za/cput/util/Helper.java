@@ -15,12 +15,13 @@ public class Helper {
         return java.util.UUID.randomUUID().toString();
     }
 
-    public static boolean isValidStoreNumber(String storeNumber) {
-        if (isNullOrEmpty(storeNumber)) {
+    public static boolean isValidStoreId(String storeId) {
+        if (isNullOrEmpty(storeId)) {
             return false;
         }
-        String storeNumberRegex = "^[A-Z]{2}\\d{4}$"; // Example: AB1234
-        return storeNumber.matches(storeNumberRegex);
+        // UUID format validation
+        String storeIdRegex = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
+        return storeId.matches(storeIdRegex);
     }
     public static boolean isValidPhoneNumber(String phoneNumber) {
         if (isNullOrEmpty(phoneNumber)) {

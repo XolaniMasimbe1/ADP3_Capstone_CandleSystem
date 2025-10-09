@@ -5,11 +5,14 @@ import ac.za.cput.service.DriverService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @CrossOrigin(origins = "*")
@@ -26,21 +29,25 @@ public class DriverController {
     }
 
     @PostMapping("/create")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('DRIVER')")
     public Driver create(@RequestBody Driver driver) {
         return service.create(driver);
     }
 
     @GetMapping("/read/{driverId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('DRIVER')")
     public Driver read(@PathVariable String driverId) {
         return service.read(driverId);
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('DRIVER')")
     public Driver update(@RequestBody Driver driver) {
         return service.update(driver);
     }
 
     @DeleteMapping("/delete/{driverId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> delete(@PathVariable String driverId) {
         boolean deleted = service.delete(driverId);
         if (deleted) {
@@ -97,21 +104,4 @@ public class DriverController {
         }
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<Driver> login(@RequestBody Driver loginRequest) {
-        try {
-            // Find driver by username
-            Optional<Driver> optionalDriver = service.findByUsername(loginRequest.getUsername());
-            if (optionalDriver.isPresent()) {
-                Driver foundDriver = optionalDriver.get();
-                // Verify password
-                if (passwordEncoder.matches(loginRequest.getPasswordHash(), foundDriver.getPasswordHash())) {
-                    return ResponseEntity.ok(foundDriver);
-                }
-            }
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
 }

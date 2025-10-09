@@ -8,11 +8,14 @@ import ac.za.cput.service.RetailStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @CrossOrigin(origins = "*")
@@ -29,13 +32,14 @@ public class RetailStoreController {
     }
 
     @PostMapping("/create")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RETAIL_STORE')")
     public RetailStore create(@RequestBody RetailStore retailStore) {
         return service.create(retailStore);
     }
 
-    @GetMapping("/read/{storeNumber}")
-    public RetailStore read(@PathVariable String storeNumber) {
-        return service.read(storeNumber);
+    @GetMapping("/read/{storeId}")
+    public RetailStore read(@PathVariable String storeId) {
+        return service.read(storeId);
     }
 
     @GetMapping("/read/id/{storeId}")
@@ -45,13 +49,108 @@ public class RetailStoreController {
 
 
     @PutMapping("/update")
-    public RetailStore update(@RequestBody RetailStore retailStore) {
-        return service.update(retailStore);
+    public ResponseEntity<RetailStore> update(@RequestBody RetailStore retailStore) {
+        try {
+            // Check for unique constraint violations before updating
+            if (retailStore.getStoreEmail() != null) {
+                // You might want to add a check here to see if email already exists
+                // for a different store
+            }
+            
+            RetailStore updatedStore = service.update(retailStore);
+            return ResponseEntity.ok(updatedStore);
+        } catch (Exception e) {
+            System.err.println("Error in update: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Check for specific constraint violations
+            if (e.getMessage() != null && e.getMessage().contains("unique constraint")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            }
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
-    @GetMapping("/find/{storeNumber}")
-    public Optional<RetailStore> findByStoreNumber(@PathVariable String storeNumber) {
-        return service.findByStoreNumber(storeNumber);
+    @PatchMapping("/update/{storeId}")
+    @SuppressWarnings("unchecked")
+    public ResponseEntity<RetailStore> partialUpdate(@PathVariable String storeId, @RequestBody Map<String, Object> updates) {
+        try {
+            RetailStore existingStore = service.readById(storeId);
+            if (existingStore == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Update only the fields that are provided
+            if (updates.containsKey("storeName")) {
+                existingStore.setStoreName((String) updates.get("storeName"));
+            }
+            if (updates.containsKey("storeEmail")) {
+                String newEmail = (String) updates.get("storeEmail");
+                // Check if email is different to avoid unique constraint violation
+                if (!newEmail.equals(existingStore.getStoreEmail())) {
+                    existingStore.setStoreEmail(newEmail);
+                }
+            }
+            if (updates.containsKey("passwordHash")) {
+                existingStore.setPasswordHash((String) updates.get("passwordHash"));
+            }
+            
+            // Update address if provided
+            if (updates.containsKey("address")) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> addressData = (Map<String, Object>) updates.get("address");
+                if (existingStore.getAddress() != null) {
+                    if (addressData.containsKey("streetNumber")) {
+                        existingStore.getAddress().setStreetNumber((String) addressData.get("streetNumber"));
+                    }
+                    if (addressData.containsKey("streetName")) {
+                        existingStore.getAddress().setStreetName((String) addressData.get("streetName"));
+                    }
+                    if (addressData.containsKey("suburb")) {
+                        existingStore.getAddress().setSuburb((String) addressData.get("suburb"));
+                    }
+                    if (addressData.containsKey("city")) {
+                        existingStore.getAddress().setCity((String) addressData.get("city"));
+                    }
+                    if (addressData.containsKey("province")) {
+                        String provinceString = (String) addressData.get("province");
+                        try {
+                            Province province = Province.valueOf(provinceString);
+                            existingStore.getAddress().setProvince(province);
+                        } catch (IllegalArgumentException e) {
+                            // If the province string doesn't match any enum value, skip the update
+                            System.err.println("Invalid province value: " + provinceString);
+                        }
+                    }
+                    if (addressData.containsKey("postalCode")) {
+                        existingStore.getAddress().setPostalCode((String) addressData.get("postalCode"));
+                    }
+                    if (addressData.containsKey("country")) {
+                        existingStore.getAddress().setCountry((String) addressData.get("country"));
+                    }
+                }
+            }
+
+            RetailStore updatedStore = service.update(existingStore);
+            return ResponseEntity.ok(updatedStore);
+        } catch (Exception e) {
+            System.err.println("Error in partial update: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Check for specific constraint violations
+            if (e.getMessage() != null && e.getMessage().contains("unique constraint")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(null); // Return conflict status for unique constraint violations
+            }
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/find/{storeId}")
+    public Optional<RetailStore> findByStoreId(@PathVariable String storeId) {
+        return service.findByStoreId(storeId);
     }
 
     @GetMapping("/all")
@@ -60,21 +159,25 @@ public class RetailStoreController {
     }
 
         @PostMapping("/register")
-        public ResponseEntity<RetailStore> registerStore(@RequestBody RetailStore retailStore) {
+        public ResponseEntity<?> registerStore(@RequestBody RetailStore retailStore) {
             try {
                 // Check if store email exists
                 if (service.findByStoreEmail(retailStore.getStoreEmail()).isPresent()) {
                     return ResponseEntity.badRequest().build();
                 }
 
-                // Hash the password before creating the store
-                String encodedPassword = passwordEncoder.encode(retailStore.getPasswordHash());
+                // Password will be hashed in RetailStoreFactory, so pass the raw password
+                System.out.println("Registration - Original password: " + retailStore.getPasswordHash());
+                System.out.println("Registration - Password length: " + retailStore.getPasswordHash().length());
+                
+                // Pass the raw password to the factory (it will handle hashing)
+                String rawPassword = retailStore.getPasswordHash();
                 
                 // Create RetailStore with Contact relationship
                 RetailStore newRetailStore = RetailStoreFactory.createRetailStore(
                         retailStore.getStoreName(),
                         retailStore.getStoreEmail(),
-                        encodedPassword, // Now using encoded password
+                        rawPassword, // Pass raw password - factory will hash it
                         retailStore.getAddress().getStreetNumber(),
                         retailStore.getAddress().getStreetName(),
                         retailStore.getAddress().getSuburb(),
@@ -104,7 +207,6 @@ public class RetailStoreController {
                 // Create a simplified response to avoid circular references
                 RetailStore responseStore = new RetailStore.Builder()
                         .setStoreId(savedStore.getStoreId())
-                        .setStoreNumber(savedStore.getStoreNumber())
                         .setStoreName(savedStore.getStoreName())
                         .setStoreEmail(savedStore.getStoreEmail())
                         .setAddress(savedStore.getAddress())
@@ -114,27 +216,12 @@ public class RetailStoreController {
                 return ResponseEntity.ok(responseStore);
             } catch (Exception e) {
                 e.printStackTrace(); // Log the exception for debugging
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Registration failed: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
             }
         }
 
-        @PostMapping("/login")
-        public ResponseEntity<RetailStore> login(@RequestBody RetailStore loginRequest) {
-            try {
-
-                Optional<RetailStore> optionalStore = service.findByStoreEmail(loginRequest.getStoreEmail());
-                if (optionalStore.isPresent()) {
-                    RetailStore foundStore = optionalStore.get();
-
-                    if (passwordEncoder.matches(loginRequest.getPasswordHash(), foundStore.getPasswordHash())) {
-                        return ResponseEntity.ok(foundStore);
-                    }
-                }
-                return ResponseEntity.badRequest().build();
-            } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-            }
-        }
 
         @GetMapping("/provinces")
         public ResponseEntity<Province[]> getProvinces() {
@@ -220,6 +307,42 @@ public class RetailStoreController {
                 }
                 return ResponseEntity.notFound().build();
             } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+
+        // Block retail store account
+        @PostMapping("/block/{storeId}")
+        public ResponseEntity<?> blockRetailStore(@PathVariable String storeId) {
+            try {
+                RetailStore store = service.read(storeId);
+                if (store != null) {
+                    store.setActive(false);
+                    RetailStore updatedStore = service.update(store);
+                    return ResponseEntity.ok(updatedStore);
+                } else {
+                    return ResponseEntity.notFound().build();
+                }
+            } catch (Exception e) {
+                System.err.println("Error blocking retail store: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        }
+
+        // Unblock retail store account
+        @PostMapping("/unblock/{storeId}")
+        public ResponseEntity<?> unblockRetailStore(@PathVariable String storeId) {
+            try {
+                RetailStore store = service.read(storeId);
+                if (store != null) {
+                    store.setActive(true);
+                    RetailStore updatedStore = service.update(store);
+                    return ResponseEntity.ok(updatedStore);
+                } else {
+                    return ResponseEntity.notFound().build();
+                }
+            } catch (Exception e) {
+                System.err.println("Error unblocking retail store: " + e.getMessage());
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
         }

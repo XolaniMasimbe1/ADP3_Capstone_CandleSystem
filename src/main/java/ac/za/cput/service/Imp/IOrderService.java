@@ -8,6 +8,6 @@ import java.util.Optional;
 
 public interface IOrderService extends IService<Order, String> {
     List<Order> getAll();
-    List<Order> getOrdersByStoreNumber(String storeNumber);
+    List<Order> getOrdersByStoreId(String storeId);
     Optional<Order> findByOrderNumber(String orderNumber);
 }

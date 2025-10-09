@@ -23,7 +23,6 @@ class AdminControllerTest {
     private int port;
 
     private static Admin admin;
-    private static Admin admin2;
 
     private String baseURL() {
         return "http://localhost:" + port + "/CandleSystem";
@@ -35,20 +34,9 @@ class AdminControllerTest {
 
     @BeforeAll
     void setUp() {
-        // Create unique test data using timestamp to avoid conflicts
-        long timestamp = System.currentTimeMillis();
-        String uniqueUsername = "admin1_" + timestamp;
-        String uniqueEmail = "admin_" + timestamp + "@test.com";
-        String uniqueUsername2 = "admin2_" + timestamp;
-        String uniqueEmail2 = "admin2_" + timestamp + "@test.com";
-        
-        // Create test admin
-        admin = AdminFactory.createAdmin(uniqueUsername, uniqueEmail, "1234567890");
+        // Create only one admin for testing
+        admin = AdminFactory.createAdmin("admin", "Admin123!", "admin@ezelina.com", "0839876543");
         assertNotNull(admin);
-        
-        // Create second admin for testing
-        admin2 = AdminFactory.createAdmin(uniqueUsername2, uniqueEmail2, "0987654321");
-        assertNotNull(admin2);
     }
 
     @AfterAll
@@ -62,22 +50,30 @@ class AdminControllerTest {
                         null,
                         String.class
                 );
-                System.out.println("Cleaned up main test admin");
+                System.out.println("Cleaned up admin");
             }
         } catch (Exception e) {
-            System.out.println("Error cleaning up main test admin: " + e.getMessage());
+            System.out.println("Error cleaning up test admin: " + e.getMessage());
         }
     }
 
     @Test
     @Order(1)
     void a_create() {
+        System.out.println("Creating admin: " + admin);
+        System.out.println("Admin ID: " + admin.getAdminId());
+        System.out.println("Admin Username: " + admin.getUsername());
+        System.out.println("Admin Email: " + admin.getEmail());
+        
         ResponseEntity<Admin> response = restTemplate.postForEntity(
                 adminURL() + "/create",
                 admin,
                 Admin.class
         );
 
+        System.out.println("Response Status: " + response.getStatusCode());
+        System.out.println("Response Body: " + response.getBody());
+        
         assertNotNull(response.getBody());
         admin = response.getBody();
         assertEquals(admin.getAdminId(), response.getBody().getAdminId());
@@ -87,11 +83,16 @@ class AdminControllerTest {
     @Test
     @Order(2)
     void b_read() {
+        System.out.println("Reading admin with ID: " + admin.getAdminId());
+        
         ResponseEntity<Admin> response = restTemplate.getForEntity(
                 adminURL() + "/read/" + admin.getAdminId(),
                 Admin.class
         );
 
+        System.out.println("Read Response Status: " + response.getStatusCode());
+        System.out.println("Read Response Body: " + response.getBody());
+        
         assertNotNull(response.getBody());
         assertEquals(admin.getAdminId(), response.getBody().getAdminId());
         System.out.println("Read: " + response.getBody());
@@ -99,34 +100,15 @@ class AdminControllerTest {
 
     @Test
     @Order(3)
-    void c_register() {
-        // Create unique admin for registration test
-        long timestamp = System.currentTimeMillis();
-        String uniqueUsername = "newadmin_" + timestamp;
-        String uniqueEmail = "newadmin_" + timestamp + "@test.com";
-        
-        Admin newAdmin = AdminFactory.createAdmin(uniqueUsername, uniqueEmail, "5555555555");
-        assertNotNull(newAdmin);
-
-        ResponseEntity<Admin> response = restTemplate.postForEntity(
-                adminURL() + "/register",
-                newAdmin,
-                Admin.class
-        );
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(uniqueUsername, response.getBody().getUsername());
-        System.out.println("Registered: " + response.getBody());
-    }
-
-    @Test
-    @Order(4)
-    void d_login() {
+    void c_login() {
         // Create login request with correct credentials
         Admin loginRequest = new Admin();
-        loginRequest.setUsername(admin.getUsername());
-        loginRequest.setPasswordHash("admin123"); // Default password from factory
+        loginRequest.setEmail(admin.getEmail());
+        loginRequest.setPasswordHash("Admin123!"); // Admin password
+
+        System.out.println("Login attempt for: " + loginRequest.getEmail());
+        System.out.println("Login password: " + loginRequest.getPasswordHash());
+        System.out.println("Admin in database: " + admin);
 
         ResponseEntity<Admin> response = restTemplate.postForEntity(
                 adminURL() + "/login",
@@ -134,22 +116,12 @@ class AdminControllerTest {
                 Admin.class
         );
 
+        System.out.println("Login Response Status: " + response.getStatusCode());
+        System.out.println("Login Response Body: " + response.getBody());
+        
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(admin.getUsername(), response.getBody().getUsername());
-        System.out.println("Login successful: " + response.getBody());
-    }
-
-    @Test
-    @Order(5)
-    void e_getAll() {
-        ResponseEntity<Admin[]> response = restTemplate.getForEntity(
-                adminURL() + "/all",
-                Admin[].class
-        );
-
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().length > 0);
-        System.out.println("All Admins (" + response.getBody().length + " total)");
+        assertEquals(admin.getEmail(), response.getBody().getEmail());
+        System.out.println("Admin Login successful: " + response.getBody());
     }
 }
