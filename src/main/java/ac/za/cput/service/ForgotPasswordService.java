@@ -64,6 +64,13 @@ public class ForgotPasswordService implements IForgotPasswordService {
             return null;
         }
         
+        // Check if there's already a forgot password record for this retail store
+        Optional<ForgotPassword> existingRecord = this.repository.findByRetailStore(retailStore);
+        if (existingRecord.isPresent()) {
+            // Delete the existing record to avoid duplicate constraint violation
+            this.repository.deleteById(existingRecord.get().getId());
+        }
+        
         ForgotPassword forgotPassword = ac.za.cput.factory.ForgotPasswordFactory.createForgotPasswordForRetailStore(retailStore);
         return this.repository.save(forgotPassword);
     }
@@ -72,6 +79,13 @@ public class ForgotPasswordService implements IForgotPasswordService {
     public ForgotPassword createForgotPasswordForAdmin(Admin admin) {
         if (admin == null) {
             return null;
+        }
+        
+        // Check if there's already a forgot password record for this admin
+        Optional<ForgotPassword> existingRecord = this.repository.findByAdmin(admin);
+        if (existingRecord.isPresent()) {
+            // Delete the existing record to avoid duplicate constraint violation
+            this.repository.deleteById(existingRecord.get().getId());
         }
         
         ForgotPassword forgotPassword = ac.za.cput.factory.ForgotPasswordFactory.createForgotPasswordForAdmin(admin);
@@ -138,5 +152,15 @@ public class ForgotPasswordService implements IForgotPasswordService {
     @Override
     public void deleteExpiredOtp(Integer id) {
         this.repository.deleteById(id);
+    }
+    
+    @Override
+    public Optional<ForgotPassword> findByRetailStore(RetailStore retailStore) {
+        return this.repository.findByRetailStore(retailStore);
+    }
+    
+    @Override
+    public Optional<ForgotPassword> findByAdmin(Admin admin) {
+        return this.repository.findByAdmin(admin);
     }
 }

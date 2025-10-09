@@ -18,6 +18,7 @@ public class Driver {
     
     private String numberPlate;    // Required for drivers
     private String vehicleType;    // Required for drivers
+    private boolean isActive = true;    // Driver account status
 
     // A public no-argument constructor is needed for Jackson deserialization
     public Driver() {}
@@ -30,6 +31,7 @@ public class Driver {
         this.phoneNumber = builder.phoneNumber;
         this.numberPlate = builder.numberPlate;
         this.vehicleType = builder.vehicleType;
+        this.isActive = builder.isActive;
     }
 
     // Getters
@@ -40,6 +42,7 @@ public class Driver {
     public String getPhoneNumber() { return phoneNumber; }
     public String getNumberPlate() { return numberPlate; }
     public String getVehicleType() { return vehicleType; }
+    public boolean isActive() { return isActive; }
 
     // Public setters are required by Jackson for deserialization
     public void setDriverId(String driverId) { this.driverId = driverId; }
@@ -49,6 +52,7 @@ public class Driver {
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
     public void setNumberPlate(String numberPlate) { this.numberPlate = numberPlate; }
     public void setVehicleType(String vehicleType) { this.vehicleType = vehicleType; }
+    public void setActive(boolean isActive) { this.isActive = isActive; }
 
     @Override
     public boolean equals(Object o) {
@@ -83,6 +87,7 @@ public class Driver {
         private String phoneNumber;
         private String numberPlate;
         private String vehicleType;
+        private boolean isActive = true;
 
         public Builder setDriverId(String driverId) {
             this.driverId = driverId;
@@ -119,6 +124,11 @@ public class Driver {
             return this;
         }
 
+        public Builder setActive(boolean isActive) {
+            this.isActive = isActive;
+            return this;
+        }
+
         public Builder copy(Driver driver) {
             this.driverId = driver.driverId;
             this.username = driver.username;
@@ -127,6 +137,7 @@ public class Driver {
             this.phoneNumber = driver.phoneNumber;
             this.numberPlate = driver.numberPlate;
             this.vehicleType = driver.vehicleType;
+            this.isActive = driver.isActive;
             return this;
         }
 

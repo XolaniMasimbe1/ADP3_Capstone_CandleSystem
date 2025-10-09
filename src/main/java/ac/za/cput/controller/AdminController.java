@@ -156,50 +156,6 @@ public class AdminController {
         }
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Admin loginRequest) {
-        try {
-            System.out.println("Login attempt for email: " + loginRequest.getEmail());
-            
-            // Find admin by email only
-            Optional<Admin> optionalAdmin = service.findByEmail(loginRequest.getEmail());
-            
-            if (optionalAdmin.isPresent()) {
-                Admin foundAdmin = optionalAdmin.get();
-                System.out.println("Found admin: " + foundAdmin.getEmail());
-                
-                // Verify password
-                boolean passwordMatches = passwordEncoder.matches(loginRequest.getPasswordHash(), foundAdmin.getPasswordHash());
-                System.out.println("Password matches: " + passwordMatches);
-                
-                if (passwordMatches) {
-                    // Check if admin account is active
-                    if (!foundAdmin.isActive()) {
-                        System.out.println("Admin account is blocked: " + foundAdmin.getEmail());
-                        Map<String, String> errorResponse = new HashMap<>();
-                        errorResponse.put("error", "Account is blocked. Please contact administrator.");
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
-                    }
-                    System.out.println("Login successful for: " + foundAdmin.getEmail());
-                    return ResponseEntity.ok(foundAdmin);
-                } else {
-                    System.out.println("Password verification failed for: " + foundAdmin.getEmail());
-                }
-            } else {
-                System.out.println("No admin found with email: " + loginRequest.getEmail());
-                Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("error", "Admin not found. Please check your email address.");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-            }
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Invalid credentials");
-            return ResponseEntity.badRequest().body(errorResponse);
-        } catch (Exception e) {
-            System.err.println("Login error: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
 
     // Block admin account
     @PostMapping("/block/{adminId}")

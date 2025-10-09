@@ -8,7 +8,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "retail_store")
-public class RetailStore {
+public class RetailStore implements User {
     @Id
     private String storeId;
     
@@ -56,6 +56,19 @@ public class RetailStore {
     public boolean isActive() { return isActive != null ? isActive : true; }
     public Address getAddress() { return address; }
     public List<ContactPerson> getContactPersons() { return contactPersons; }
+
+    // User interface implementation
+    @Override
+    public String getId() { return storeId; }
+    
+    @Override
+    public String getEmail() { return storeEmail; }
+    
+    @Override
+    public String getRole() { return "RETAIL_STORE"; }
+    
+    @Override
+    public String getName() { return storeName; }
     
     // Helper methods for contact management
     public ContactPerson getFirstContactPerson() {

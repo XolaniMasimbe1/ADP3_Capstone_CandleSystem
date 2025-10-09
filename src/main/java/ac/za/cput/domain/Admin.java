@@ -5,7 +5,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "admin")
-public class Admin {
+public class Admin implements User {
     @Id
     private String adminId;
     
@@ -37,6 +37,16 @@ public class Admin {
     public String getEmail() { return email; }
     public String getPhoneNumber() { return phoneNumber; }
     public boolean isActive() { return isActive != null ? isActive : true; }
+
+    // User interface implementation
+    @Override
+    public String getId() { return adminId; }
+    
+    @Override
+    public String getRole() { return "ADMIN"; }
+    
+    @Override
+    public String getName() { return username; }
 
     // Public setters are required by Jackson for deserialization
     public void setAdminId(String adminId) { this.adminId = adminId; }

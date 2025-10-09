@@ -26,4 +26,8 @@ public interface IForgotPasswordService extends IService<ForgotPassword, Integer
     boolean isOtpExpired(ForgotPassword forgotPassword);
     
     void deleteExpiredOtp(Integer id);
+    
+    Optional<ForgotPassword> findByRetailStore(RetailStore retailStore);
+    
+    Optional<ForgotPassword> findByAdmin(Admin admin);
 }

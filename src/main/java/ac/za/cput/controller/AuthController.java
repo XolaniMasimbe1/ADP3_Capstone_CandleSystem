@@ -1,36 +1,77 @@
 package ac.za.cput.controller;
 
+import ac.za.cput.service.AuthenticationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-import java.util.HashMap;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.Map;
 
 @RestController
+@RequestMapping("/auth")
+@CrossOrigin(origins = "*") // Allow all origins for development
 public class AuthController {
 
-    @GetMapping("/login")
-    public ResponseEntity<Map<String, String>> login() {
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Please use the API endpoints for authentication: /admin/login, /driver/login, or /store/login");
-        response.put("status", "info");
-        return ResponseEntity.ok(response);
+    @Autowired
+    private AuthenticationService authenticationService;
+
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            String password = request.get("password");
+            
+            System.out.println("🌐 AuthController - Universal login request received");
+            
+            Map<String, Object> response = authenticationService.login(email, password);
+            
+            System.out.println("✅ AuthController - Universal login successful");
+            System.out.println("   JWT Token: " + response.get("token"));
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.out.println("❌ AuthController - Universal login failed: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
-    @GetMapping("/dashboard")
-    public ResponseEntity<Map<String, String>> dashboard() {
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Dashboard endpoint - use your frontend application");
-        response.put("status", "info");
-        return ResponseEntity.ok(response);
+    @PostMapping("/admin/login")
+    public ResponseEntity<Map<String, Object>> adminLogin(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            String password = request.get("password");
+            
+            System.out.println("👑 AuthController - Admin login request received");
+            
+            Map<String, Object> response = authenticationService.loginAdmin(email, password);
+            
+            System.out.println("✅ AuthController - Admin login successful");
+            System.out.println("   JWT Token: " + response.get("token"));
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.out.println("❌ AuthController - Admin login failed: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
-    @GetMapping("/")
-    public ResponseEntity<Map<String, String>> home() {
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Candle System API is running");
-        response.put("status", "success");
-        response.put("version", "1.0.0");
-        return ResponseEntity.ok(response);
+    @PostMapping("/store/login")
+    public ResponseEntity<Map<String, Object>> storeLogin(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            String password = request.get("password");
+            
+            System.out.println("🏪 AuthController - Store login request received");
+            
+            Map<String, Object> response = authenticationService.loginRetailStore(email, password);
+            
+            System.out.println("✅ AuthController - Store login successful");
+            System.out.println("   JWT Token: " + response.get("token"));
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.out.println("❌ AuthController - Store login failed: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 }

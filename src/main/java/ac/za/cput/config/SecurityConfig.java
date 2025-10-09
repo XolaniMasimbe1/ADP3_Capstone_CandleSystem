@@ -12,7 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.http.HttpMethod;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -21,6 +21,12 @@ public class SecurityConfig {
 
     @Autowired
     private CustomUserDetailsService userDetailsService;
+    
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    
+    @Autowired
+    private UserStatusFilter userStatusFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -40,26 +46,26 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
                 
+                // JWT Authentication endpoints (public)
+                .requestMatchers("/auth/**").permitAll()
+                
+                // Forgot password endpoints (public)
+                .requestMatchers("/forgot-password/**").permitAll()
+                
                 // Registration endpoints (public)
                 .requestMatchers("/store/register", "/admin/register", "/driver/register").permitAll()
                 
                 // Login endpoints (public - for mobile app authentication)
                 .requestMatchers("/store/login", "/admin/login", "/driver/login").permitAll()
                 
-                // Admin creation and read endpoints (public for testing and initial setup)
-                .requestMatchers("/admin/create", "/admin/read/**", "/admin/all", "/admin/update-password").permitAll()
-                
-                // Store management endpoints (public - for mobile app) - MUST come before other rules
-                .requestMatchers("/store/update", "/store/update/**", "/store/read/**", "/store/find/**", "/store/all", "/store/create").permitAll()
-                
-                // Explicitly allow PATCH method for store updates
-                .requestMatchers(HttpMethod.PATCH, "/store/update/**").permitAll()
-                
                 // Product endpoints (public - everyone can view products)
                 .requestMatchers("/product/**").permitAll()
                 
-                // Manufacture endpoints (public - everyone can view manufacturers)
+                // Manufacture endpoints (public - for admin dashboard)
                 .requestMatchers("/manufacture/**").permitAll()
+                
+                // Store endpoints (public - for admin dashboard)
+                .requestMatchers("/store/**").permitAll()
                 
                 // Delivery endpoints (public - for order creation)
                 .requestMatchers("/delivery/**").permitAll()
@@ -73,19 +79,14 @@ public class SecurityConfig {
                 // Test endpoints (public)
                 .requestMatchers("/test/**").permitAll()
                 
-                // Forgot password endpoints (public)
-                .requestMatchers("/forgot-password/**").permitAll()
                 
-                // Admin management endpoints (public for now - will add authentication later)
-                .requestMatchers("/admin/update", "/admin/delete/**", "/admin/block/**", "/admin/unblock/**").permitAll()
-                
-                // Retail store management endpoints (public for now - will add authentication later)
-                .requestMatchers("/store/block/**", "/store/unblock/**").permitAll()
+                // Admin only endpoints (require JWT authentication)
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 
                 // Driver only endpoints  
                 .requestMatchers("/driver/**").hasRole("DRIVER")
                 
-                // Retail store only endpoints (MUST come after /store/** rules)
+                // Retail store only endpoints
                 .requestMatchers("/retail/**").hasRole("RETAIL_STORE")
                 
                 // Any authenticated user
@@ -94,8 +95,12 @@ public class SecurityConfig {
                 // All other requests need authentication
                 .anyRequest().authenticated()
             )
-            // Removed formLogin since we're using API-based authentication
-            // Authentication is handled through /admin/login, /driver/login, /store/login endpoints
+            .formLogin(form -> form
+                .loginPage("/login")
+                .defaultSuccessUrl("/dashboard", true)
+                .failureUrl("/login?error=true")
+                .permitAll()
+            )
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout=true")
@@ -103,7 +108,9 @@ public class SecurityConfig {
                 .deleteCookies("JSESSIONID")
                 .permitAll()
             )
-            .csrf(csrf -> csrf.disable()); // Disable CSRF for API endpoints
+                .csrf(csrf -> csrf.disable()) // Disable CSRF for API endpoints
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter
+                .addFilterAfter(userStatusFilter, JwtAuthenticationFilter.class); // Add user status filter after JWT
 
         return http.build();
     }

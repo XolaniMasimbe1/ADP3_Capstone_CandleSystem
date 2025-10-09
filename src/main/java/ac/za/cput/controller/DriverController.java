@@ -104,49 +104,4 @@ public class DriverController {
         }
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Driver loginRequest) {
-        try {
-            System.out.println("Login attempt for driver: " + loginRequest.getUsername());
-            
-            // Find driver by username
-            Optional<Driver> optionalDriver = service.findByUsername(loginRequest.getUsername());
-            if (optionalDriver.isPresent()) {
-                Driver foundDriver = optionalDriver.get();
-                System.out.println("Found driver: " + foundDriver.getUsername());
-                
-                // Verify password
-                boolean passwordMatches = passwordEncoder.matches(loginRequest.getPasswordHash(), foundDriver.getPasswordHash());
-                System.out.println("Password matches: " + passwordMatches);
-                
-                if (passwordMatches) {
-                    // Check if driver account is active
-                    if (!foundDriver.isActive()) {
-                        System.out.println("Driver account is blocked: " + foundDriver.getUsername());
-                        Map<String, String> errorResponse = new HashMap<>();
-                        errorResponse.put("error", "Account is blocked. Please contact administrator.");
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
-                    }
-                    System.out.println("Login successful for: " + foundDriver.getUsername());
-                    return ResponseEntity.ok(foundDriver);
-                } else {
-                    System.out.println("Password verification failed for: " + foundDriver.getUsername());
-                }
-            } else {
-                System.out.println("No driver found with username: " + loginRequest.getUsername());
-                Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("error", "Driver not found. Please check your username.");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-            }
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Invalid credentials");
-            return ResponseEntity.badRequest().body(errorResponse);
-        } catch (Exception e) {
-            System.err.println("Login error: " + e.getMessage());
-            e.printStackTrace();
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Login failed: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
 }

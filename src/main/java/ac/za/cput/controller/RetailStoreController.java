@@ -222,52 +222,6 @@ public class RetailStoreController {
             }
         }
 
-        @PostMapping("/login")
-        public ResponseEntity<?> login(@RequestBody RetailStore loginRequest) {
-            try {
-                System.out.println("Login attempt for email: " + loginRequest.getStoreEmail());
-                
-                Optional<RetailStore> optionalStore = service.findByStoreEmail(loginRequest.getStoreEmail());
-                if (optionalStore.isPresent()) {
-                    RetailStore foundStore = optionalStore.get();
-                    System.out.println("Store found: " + foundStore.getStoreName());
-                    System.out.println("Stored password hash: " + foundStore.getPasswordHash());
-                    System.out.println("Login password: " + loginRequest.getPasswordHash());
-
-                    boolean passwordMatches = passwordEncoder.matches(loginRequest.getPasswordHash(), foundStore.getPasswordHash());
-                    
-                    if (passwordMatches) {
-                        // Check if retail store account is active
-                        if (!foundStore.isActive()) {
-                            System.out.println("Retail store account is blocked: " + foundStore.getStoreEmail());
-                            Map<String, String> errorResponse = new HashMap<>();
-                            errorResponse.put("error", "Account is blocked. Please contact administrator.");
-                            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
-                        }
-                        System.out.println("Password matches - login successful");
-                        return ResponseEntity.ok(foundStore);
-                    } else {
-                        System.out.println("Password does not match - login failed");
-                        // SECURITY: Do NOT reset passwords automatically - this is a major security vulnerability
-                        // If password doesn't match, login should fail
-                    }
-                } else {
-                    System.out.println("Store not found for email: " + loginRequest.getStoreEmail());
-
-                    Map<String, String> errorResponse = new HashMap<>();
-                    errorResponse.put("error", "Store not found. Please check your email address.");
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-                }
-                Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("error", "Invalid credentials");
-                return ResponseEntity.badRequest().body(errorResponse);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("error", "Login failed: " + e.getMessage());
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-            }
-        }
 
         @GetMapping("/provinces")
         public ResponseEntity<Province[]> getProvinces() {
