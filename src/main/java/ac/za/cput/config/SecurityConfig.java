@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .requestMatchers("/forgot-password/**").permitAll()
                 
                 // Registration endpoints (public)
-                .requestMatchers("/store/register", "/admin/register", "/driver/register").permitAll()
+                .requestMatchers("/store/register", "/admin/register", "/driver/register", "/admin/create").permitAll()
                 
                 // Login endpoints (public - for mobile app authentication)
                 .requestMatchers("/store/login", "/admin/login", "/driver/login").permitAll()
