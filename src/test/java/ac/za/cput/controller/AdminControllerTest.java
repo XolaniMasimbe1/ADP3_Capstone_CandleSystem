@@ -9,6 +9,9 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -101,19 +104,19 @@ class AdminControllerTest {
     @Test
     @Order(3)
     void c_login() {
-        // Create login request with correct credentials
-        Admin loginRequest = new Admin();
-        loginRequest.setEmail(admin.getEmail());
-        loginRequest.setPasswordHash("Admin123!"); // Admin password
+        // Create login request with correct credentials using Map for auth endpoint
+        Map<String, String> loginRequest = new HashMap<>();
+        loginRequest.put("email", admin.getEmail());
+        loginRequest.put("password", "Admin123!"); // Admin password
 
-        System.out.println("Login attempt for: " + loginRequest.getEmail());
-        System.out.println("Login password: " + loginRequest.getPasswordHash());
+        System.out.println("Login attempt for: " + loginRequest.get("email"));
+        System.out.println("Login password: " + loginRequest.get("password"));
         System.out.println("Admin in database: " + admin);
 
-        ResponseEntity<Admin> response = restTemplate.postForEntity(
-                adminURL() + "/login",
+        ResponseEntity<Map> response = restTemplate.postForEntity(
+                baseURL() + "/auth/admin/login",
                 loginRequest,
-                Admin.class
+                Map.class
         );
 
         System.out.println("Login Response Status: " + response.getStatusCode());
@@ -121,7 +124,7 @@ class AdminControllerTest {
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(admin.getEmail(), response.getBody().getEmail());
+        assertTrue(response.getBody().containsKey("token"));
         System.out.println("Admin Login successful: " + response.getBody());
     }
 }
