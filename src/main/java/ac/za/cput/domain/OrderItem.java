@@ -47,13 +47,26 @@ public class OrderItem {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        OrderItem orderItem = (OrderItem) o;
-        return Objects.equals(id, orderItem.id);
+        OrderItem other = (OrderItem) o;
+        // If both have database IDs, compare by ID
+        if (this.id != null && other.id != null) {
+            return Objects.equals(this.id, other.id);
+        }
+        // For transient instances (null IDs), compare by business keys
+        String thisProductNumber = this.product != null ? this.product.getProductNumber() : null;
+        String otherProductNumber = other.product != null ? other.product.getProductNumber() : null;
+        return Objects.equals(thisProductNumber, otherProductNumber)
+                && this.quantity == other.quantity
+                && Double.compare(this.unitPrice, other.unitPrice) == 0;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        if (this.id != null) {
+            return Objects.hash(this.id);
+        }
+        String productNumber = this.product != null ? this.product.getProductNumber() : null;
+        return Objects.hash(productNumber, this.quantity, this.unitPrice);
     }
 
     @Override
