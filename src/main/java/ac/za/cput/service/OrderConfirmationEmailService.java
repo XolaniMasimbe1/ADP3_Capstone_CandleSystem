@@ -81,7 +81,8 @@ public class OrderConfirmationEmailService {
         helper.setSubject("Order Confirmation - " + order.getOrderNumber());
         
         String htmlContent = buildOrderConfirmationHtml(order);
-        helper.setText(htmlContent, true);
+        String plainContent = buildOrderConfirmationPlainText(order);
+        helper.setText(plainContent, htmlContent);
         
         mailSender.send(message);
     }
@@ -121,140 +122,50 @@ public class OrderConfirmationEmailService {
      */
     private String buildOrderConfirmationHtml(Order order) {
         StringBuilder html = new StringBuilder();
-        
-        // Email header
         html.append("<!DOCTYPE html>");
-        html.append("<html><head>");
-        html.append("<meta charset='UTF-8'>");
-        html.append("<meta name='viewport' content='width=device-width, initial-scale=1.0'>");
-        html.append("<title>Order Confirmation</title>");
-        html.append("<style>");
-        html.append("body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background-color: #f4f4f4; }");
-        html.append(".container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }");
-        html.append(".header { text-align: center; border-bottom: 2px solid #e74c3c; padding-bottom: 20px; margin-bottom: 30px; }");
-        html.append(".header h1 { color: #e74c3c; margin: 0; font-size: 28px; }");
-        html.append(".order-info { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0; }");
-        html.append(".order-info h3 { margin-top: 0; color: #2c3e50; }");
-        html.append(".product-item { display: flex; align-items: center; padding: 15px; border: 1px solid #ddd; border-radius: 5px; margin: 10px 0; background: white; }");
-        html.append(".product-image { width: 80px; height: 80px; object-fit: cover; border-radius: 5px; margin-right: 15px; display: block; flex-shrink: 0; }");
-        html.append(".product-details { flex: 1; }");
-        html.append(".product-name { font-weight: bold; color: #2c3e50; margin-bottom: 5px; }");
-        html.append(".product-info { color: #666; font-size: 14px; margin: 2px 0; }");
-        html.append(".quantity-price { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }");
-        html.append(".quantity { background: #e74c3c; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px; }");
-        html.append(".price { font-weight: bold; color: #27ae60; font-size: 16px; }");
-        html.append(".total-section { background: #2c3e50; color: white; padding: 20px; border-radius: 5px; margin-top: 20px; text-align: center; }");
-        html.append(".total-amount { font-size: 24px; font-weight: bold; margin: 10px 0; }");
-        html.append(".footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; }");
-        html.append("</style>");
-        html.append("</head><body>");
-        
-        // Container start
-        html.append("<div class='container'>");
-        
-        // Header
-        html.append("<div class='header'>");
-        html.append("<h1>🕯️ Candle System</h1>");
-        html.append("<h2>Order Confirmation</h2>");
+        html.append("<html><body style='margin:0;padding:0;background:#ffffff;'>");
+        html.append("<table role='presentation' cellpadding='0' cellspacing='0' border='0' width='100%'>");
+        html.append("<tr><td align='center' style='padding:16px;'>");
+        html.append("<table role='presentation' cellpadding='0' cellspacing='0' border='0' width='600' style='width:600px;max-width:600px;border:1px solid #e5e7eb;border-radius:8px;background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#111111;'>");
+        html.append("<tr><td align='center' style='padding:20px 20px 12px 20px;border-bottom:2px solid #e74c3c;'>");
+        html.append("<div style='font-size:24px;font-weight:700;color:#e74c3c;'>Candle System</div>");
+        html.append("<div style='font-size:18px;font-weight:600;color:#111111;margin-top:4px;'>Order Confirmation</div>");
+        html.append("</td></tr>");
+        html.append("<tr><td style='padding:16px 20px;'>");
+        html.append("<div style='font-size:14px;line-height:1.6;color:#111111;'>");
+        html.append("<div><strong>Order Number:</strong> ").append(order.getOrderNumber()).append("</div>");
+        html.append("<div><strong>Invoice Number:</strong> ").append(order.getInvoice() != null ? order.getInvoice().getInvoiceNumber() : "N/A").append("</div>");
+        html.append("<div><strong>Order Date:</strong> ").append(order.getOrderDate() != null ? order.getOrderDate().format(DateTimeFormatter.ofPattern("dd MMMM yyyy")) : "Not specified").append("</div>");
+        html.append("<div><strong>Status:</strong> ").append(order.getOrderStatus()).append("</div>");
+        html.append("<div><strong>Store:</strong> ").append(order.getRetailStore() != null ? order.getRetailStore().getStoreName() : "N/A").append("</div>");
         html.append("</div>");
-        
-        // Order information
-        html.append("<div class='order-info'>");
-        html.append("<h3>📋 Order Details</h3>");
-        html.append("<p><strong>Order Number:</strong> ").append(order.getOrderNumber()).append("</p>");
-        html.append("<p><strong>Invoice Number:</strong> ").append(order.getInvoice() != null ? order.getInvoice().getInvoiceNumber() : "N/A").append("</p>");
-        html.append("<p><strong>Order Date:</strong> ").append(
-            order.getOrderDate() != null ? 
-            order.getOrderDate().format(DateTimeFormatter.ofPattern("dd MMMM yyyy")) : 
-            "Not specified"
-        ).append("</p>");
-        html.append("<p><strong>Status:</strong> ").append(order.getOrderStatus()).append("</p>");
-        html.append("<p><strong>Store:</strong> ").append(order.getRetailStore().getStoreName()).append("</p>");
-        html.append("</div>");
-        
-        // Products section
-        html.append("<h3>🛍️ Ordered Products</h3>");
-        
-        if (order.getOrderItems() != null && !order.getOrderItems().isEmpty()) {
-            for (OrderItem item : order.getOrderItems()) {
-                Product product = item.getProduct();
-                
-                // Fetch the product with images from database to ensure we have the image data
-                Product productWithImages = productRepository.findById(product.getProductNumber()).orElse(product);
-                
-                html.append("<div class='product-item'>");
-                
-                // Product image
-                System.out.println("Processing product: " + productWithImages.getName());
-                System.out.println("Product image data: " + (productWithImages.getImageData() != null ? "Present (" + productWithImages.getImageData().length + " bytes)" : "NULL"));
-                
-                // Display actual product image from database
-                if (productWithImages.getImageData() != null && productWithImages.getImageData().length > 0) {
-                    if (isImageSuitableForEmail(productWithImages.getImageData())) {
-                        try {
-                            // Convert image data to base64 for email embedding
-                            String base64Image = Base64.getEncoder().encodeToString(productWithImages.getImageData());
-                            System.out.println("Product image found: " + productWithImages.getName() + " (" + productWithImages.getImageData().length + " bytes) - SUITABLE FOR EMAIL");
-                            
-                            // Create proper img tag with base64 data
-                            html.append("<img src='data:image/jpeg;base64,")
-                                .append(base64Image)
-                                .append("' style='width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin-right: 15px; flex-shrink: 0;' alt='")
-                                .append(productWithImages.getName())
-                                .append("'>");
-                        } catch (Exception e) {
-                            System.err.println("Error processing image for product " + productWithImages.getName() + ": " + e.getMessage());
-                            // Fallback to placeholder if image processing fails
-                            html.append(createProductPlaceholder(productWithImages.getName()));
-                        }
-                    } else {
-                        System.out.println("Product image too large for email: " + productWithImages.getName() + " (" + productWithImages.getImageData().length + " bytes) - USING PLACEHOLDER");
-                        // Use placeholder for large images
-                        html.append(createProductPlaceholder(productWithImages.getName()));
-                    }
-                } else {
-                    System.out.println("No image data for product: " + productWithImages.getName());
-                    // Use placeholder only if no image exists
-                    html.append(createProductPlaceholder(productWithImages.getName()));
-                }
-                
-                // Product details
-                html.append("<div class='product-details'>");
-                html.append("<div class='product-name'>").append(productWithImages.getName()).append("</div>");
-                html.append("<div class='product-info'>Scent: ").append(productWithImages.getScent() != null ? productWithImages.getScent() : "N/A").append("</div>");
-                html.append("<div class='product-info'>Color: ").append(productWithImages.getColor() != null ? productWithImages.getColor() : "N/A").append("</div>");
-                html.append("<div class='product-info'>Size: ").append(productWithImages.getSize() != null ? productWithImages.getSize() : "N/A").append("</div>");
-                html.append("<div class='product-info'>Manufacturer: ").append(productWithImages.getManufacturer() != null ? productWithImages.getManufacturer().getManufacturerName() : "N/A").append("</div>");
-                
-                html.append("<div class='quantity-price'>");
-                html.append("<span class='quantity'>Qty: ").append(item.getQuantity()).append("</span>");
-                html.append("<span class='price'>R").append(String.format("%.2f", item.getUnitPrice() * item.getQuantity())).append("</span>");
-                html.append("</div>");
-                
-                html.append("</div>");
-                html.append("</div>");
-            }
-        } else {
-            html.append("<p>No products found in this order.</p>");
-        }
-        
-        // Total section
-        html.append("<div class='total-section'>");
-        html.append("<h3>💰 Order Total</h3>");
-        html.append("<div class='total-amount'>R").append(String.format("%.2f", order.getInvoice() != null ? order.getInvoice().getTotalAmount() : 0.0)).append("</div>");
-        html.append("<p>Thank you for your order! We'll process it shortly.</p>");
-        html.append("</div>");
-        
-        // Footer
-        html.append("<div class='footer'>");
-        html.append("<p>This is an automated confirmation email from Candle System.</p>");
-        html.append("<p>Product images are displayed above. If you have any questions, please contact our support team.</p>");
-        html.append("</div>");
-        
-        // Container end
-        html.append("</div>");
+        html.append("</td></tr>");
+        html.append("<tr><td style='padding:16px 20px;'>");
+        html.append("<table role='presentation' cellpadding='0' cellspacing='0' border='0' width='100%' style='background:#111827;color:#ffffff;border-radius:6px;'>");
+        html.append("<tr><td align='center' style='padding:14px;'>");
+        html.append("<div style='font-size:16px;'>Order Total</div>");
+        html.append("<div style='font-size:22px;font-weight:700;margin-top:6px;'>R").append(String.format("%.2f", order.getInvoice() != null ? order.getInvoice().getTotalAmount() : 0.0)).append("</div>");
+        html.append("</td></tr></table>");
+        html.append("</td></tr>");
+        html.append("<tr><td align='center' style='padding:20px;color:#6b7280;font-size:12px;font-family:Arial,Helvetica,sans-serif;'>");
+        html.append("This is an automated confirmation email from Candle System. Thank you for your order.");
+        html.append("</td></tr>");
+        html.append("</table>");
+        html.append("</td></tr></table>");
         html.append("</body></html>");
-        
         return html.toString();
+    }
+
+    private String buildOrderConfirmationPlainText(Order order) {
+        StringBuilder txt = new StringBuilder();
+        txt.append("Candle System - Order Confirmation\n");
+        txt.append("Order Number: ").append(order.getOrderNumber()).append("\n");
+        txt.append("Invoice Number: ").append(order.getInvoice() != null ? order.getInvoice().getInvoiceNumber() : "N/A").append("\n");
+        txt.append("Order Date: ").append(order.getOrderDate() != null ? order.getOrderDate().format(DateTimeFormatter.ofPattern("dd MMMM yyyy")) : "Not specified").append("\n");
+        txt.append("Status: ").append(order.getOrderStatus()).append("\n");
+        txt.append("Store: ").append(order.getRetailStore() != null ? order.getRetailStore().getStoreName() : "N/A").append("\n");
+        txt.append("Order Total: R").append(String.format("%.2f", order.getInvoice() != null ? order.getInvoice().getTotalAmount() : 0.0)).append("\n");
+        txt.append("Thank you for your order!\n");
+        return txt.toString();
     }
 }
