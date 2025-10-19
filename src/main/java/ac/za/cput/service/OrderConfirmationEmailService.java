@@ -27,7 +27,7 @@ import java.util.Base64;
  * 
  * Author: Xolani Masimbe
  * Student Number: 222410817
- * Date: 26 June 2025
+ * Date: 03 October 2025
  */
 @Service
 public class OrderConfirmationEmailService {
