@@ -13,6 +13,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -45,6 +50,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 // Public endpoints
                 .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 
                 // JWT Authentication endpoints (public)
                 .requestMatchers("/auth/**").permitAll()
@@ -62,19 +68,35 @@ public class SecurityConfig {
                 .requestMatchers("/product/**").permitAll()
                 
                 // Manufacture endpoints (public - for admin dashboard)
-                .requestMatchers("/manufacture/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/manufacture/**").permitAll()
+                .requestMatchers("/manufacture/**").authenticated()
                 
                 // Store endpoints (public - for admin dashboard)
-                .requestMatchers("/store/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/store/provinces").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/store/all").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/store/read/**").permitAll()
+                .requestMatchers("/store/**").authenticated()
                 
-                // Delivery endpoints (public - for order creation)
-                .requestMatchers("/delivery/**").permitAll()
+                // Delivery endpoints (simple mobile access)
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/delivery/create").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/delivery/read/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/delivery/all").permitAll()
+                .requestMatchers("/delivery/**").authenticated()
                 
-                // Invoice endpoints (public - for order creation)
-                .requestMatchers("/invoice/**").permitAll()
+                // Invoice endpoints (simple mobile access)
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/invoice/create").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/invoice/read/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/invoice/all").permitAll()
+                .requestMatchers("/invoice/**").authenticated()
                 
-                // Order endpoints (public - for order creation)
-                .requestMatchers("/order/**").permitAll()
+                // Order endpoints (simple mobile + admin dashboard)
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/order/create").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/order/create-with-email").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/order/read/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/order/store/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/order/all").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/order/update").permitAll()
+                .requestMatchers("/order/**").authenticated()
                 
                 // Test endpoints (public)
                 .requestMatchers("/test/**").permitAll()
@@ -108,10 +130,36 @@ public class SecurityConfig {
                 .deleteCookies("JSESSIONID")
                 .permitAll()
             )
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for API endpoints
+                .exceptionHandling(ex -> ex
+                    .authenticationEntryPoint((req, res, e) -> res.sendError(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED))
+                    .accessDeniedHandler((req, res, e) -> res.sendError(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN))
+                )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter
                 .addFilterAfter(userStatusFilter, JwtAuthenticationFilter.class); // Add user status filter after JWT
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+                "http://192.168.14.13:3000",
+                "http://localhost:19006",
+                "http://localhost:19000"
+        ));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With"));
+        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

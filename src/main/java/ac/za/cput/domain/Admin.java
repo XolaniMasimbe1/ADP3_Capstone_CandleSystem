@@ -7,6 +7,7 @@ import java.util.Objects;
 @Table(name = "admin")
 public class Admin implements User {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String adminId;
     
     @Column(unique = true)

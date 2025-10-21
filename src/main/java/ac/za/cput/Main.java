@@ -11,7 +11,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * Date: 26 June 2025
  **/
 @SpringBootApplication(scanBasePackages = "ac.za.cput")
-@EnableScheduling
 public class Main {
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);

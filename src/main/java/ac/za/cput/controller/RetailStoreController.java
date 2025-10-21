@@ -49,6 +49,7 @@ public class RetailStoreController {
 
 
     @PutMapping("/update")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RETAIL_STORE')")
     public ResponseEntity<RetailStore> update(@RequestBody RetailStore retailStore) {
         try {
             // Check for unique constraint violations before updating
@@ -73,6 +74,7 @@ public class RetailStoreController {
     }
 
     @PatchMapping("/update/{storeId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RETAIL_STORE')")
     @SuppressWarnings("unchecked")
     public ResponseEntity<RetailStore> partialUpdate(@PathVariable String storeId, @RequestBody Map<String, Object> updates) {
         try {
@@ -167,8 +169,8 @@ public class RetailStoreController {
                 }
 
                 // Password will be hashed in RetailStoreFactory, so pass the raw password
-                System.out.println("Registration - Original password: " + retailStore.getPasswordHash());
-                System.out.println("Registration - Password length: " + retailStore.getPasswordHash().length());
+               // System.out.println("Registration - Original password: " + retailStore.getPasswordHash());
+              //  System.out.println("Registration - Password length: " + retailStore.getPasswordHash().length());
                 
                 // Pass the raw password to the factory (it will handle hashing)
                 String rawPassword = retailStore.getPasswordHash();
@@ -313,6 +315,7 @@ public class RetailStoreController {
 
         // Block retail store account
         @PostMapping("/block/{storeId}")
+        @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<?> blockRetailStore(@PathVariable String storeId) {
             try {
                 RetailStore store = service.read(storeId);
@@ -331,6 +334,7 @@ public class RetailStoreController {
 
         // Unblock retail store account
         @PostMapping("/unblock/{storeId}")
+        @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<?> unblockRetailStore(@PathVariable String storeId) {
             try {
                 RetailStore store = service.read(storeId);

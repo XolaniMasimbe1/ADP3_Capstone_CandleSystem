@@ -95,6 +95,7 @@ public class AdminController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
     public List<Admin> getAll() {
         return service.getAll();
     }
@@ -159,6 +160,7 @@ public class AdminController {
 
     // Block admin account
     @PostMapping("/block/{adminId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> blockAdmin(@PathVariable String adminId) {
         try {
             Admin admin = service.read(adminId);
@@ -177,6 +179,7 @@ public class AdminController {
 
     // Unblock admin account
     @PostMapping("/unblock/{adminId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> unblockAdmin(@PathVariable String adminId) {
         try {
             Admin admin = service.read(adminId);

@@ -4,6 +4,7 @@ import ac.za.cput.domain.Manufacture;
 import ac.za.cput.factory.ManufactureFactory;
 import ac.za.cput.service.ManufactureService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,6 +44,12 @@ public class ManufactureController {
     @PutMapping("/update")
     public Manufacture update(@RequestBody Manufacture manufacture) {
         return manufactureService.update(manufacture);
+    }
+
+    @DeleteMapping("/delete/{manufacturerNumber}")
+    public ResponseEntity<Void> delete(@PathVariable Long manufacturerNumber) {
+        boolean deleted = manufactureService.delete(manufacturerNumber);
+        return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 
 

@@ -27,4 +27,12 @@ public class ManufactureService implements IManufactureService {
 
     @Override
     public List<Manufacture> getAll() { return this.repository.findAll(); }
+
+    public boolean delete(Long manufactureNumber) {
+        if (repository.existsById(manufactureNumber)) {
+            repository.deleteById(manufactureNumber);
+            return true;
+        }
+        return false;
+    }
 }
