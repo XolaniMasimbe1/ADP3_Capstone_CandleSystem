@@ -27,11 +27,11 @@ public class JwtService {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
     
-    /**
-     * Generate JWT token for a user
-     */
+
+     //Generate JWT token for a user
+
     public String generateToken(String userId, String email, String role, String name) {
-        System.out.println("🔐 JWT Service - Generating token...");
+        System.out.println("JWT Service - Generating token...");
         
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
@@ -41,15 +41,15 @@ public class JwtService {
         
         String token = createToken(claims, email);
         
-        System.out.println("🎫 Generated JWT Token: " + token);
-        System.out.println("🔐 JWT Service - Token generation complete");
+        System.out.println("Generated JWT Token: " + token);
+        System.out.println("JWT Service - Token generation complete");
         
         return token;
     }
     
-    /**
-     * Create the actual JWT token
-     */
+
+      //Create the actual JWT token
+
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
                 .setClaims(claims)
@@ -60,9 +60,9 @@ public class JwtService {
                 .compact();
     }
     
-    /**
-     * Extract user ID from token
-     */
+
+     //Extract user ID from token
+
     public String extractUserId(String token) {
         return extractClaim(token, claims -> claims.get("userId", String.class));
     }

@@ -21,16 +21,16 @@ public class AuthController {
             String email = request.get("email");
             String password = request.get("password");
             
-            System.out.println("🌐 AuthController - Universal login request received");
+            System.out.println(" AuthController - Universal login request received");
             
             Map<String, Object> response = authenticationService.login(email, password);
             
-            System.out.println("✅ AuthController - Universal login successful");
+            System.out.println("AuthController - Universal login successful");
             System.out.println("   JWT Token: " + response.get("token"));
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            System.out.println("❌ AuthController - Universal login failed: " + e.getMessage());
+            System.out.println("AuthController - Universal login failed: " + e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
@@ -41,16 +41,16 @@ public class AuthController {
             String email = request.get("email");
             String password = request.get("password");
             
-            System.out.println("👑 AuthController - Admin login request received");
+            System.out.println(" AuthController - Admin login request received");
             
             Map<String, Object> response = authenticationService.loginAdmin(email, password);
             
-            System.out.println("✅ AuthController - Admin login successful");
+            System.out.println("AuthController - Admin login successful");
             System.out.println("   JWT Token: " + response.get("token"));
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            System.out.println("❌ AuthController - Admin login failed: " + e.getMessage());
+            System.out.println("AuthController - Admin login failed: " + e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
@@ -61,16 +61,16 @@ public class AuthController {
             String email = request.get("email");
             String password = request.get("password");
             
-            System.out.println("🏪 AuthController - Store login request received");
+            System.out.println("AuthController - Store login request received");
             
             Map<String, Object> response = authenticationService.loginRetailStore(email, password);
             
-            System.out.println("✅ AuthController - Store login successful");
+            System.out.println("AuthController - Store login successful");
             System.out.println("   JWT Token: " + response.get("token"));
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            System.out.println("❌ AuthController - Store login failed: " + e.getMessage());
+            System.out.println("AuthController - Store login failed: " + e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
